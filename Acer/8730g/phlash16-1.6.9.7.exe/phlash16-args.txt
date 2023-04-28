@@ -1,0 +1,64 @@
+Phoenix Flash Utility for DOS - Version 1.6.9.7
+Copyright (c) Phoenix Technologies Ltd., 2000-2008
+USAGE: Phlash16 [options] [@rspfile] [romfile]
+   romfile      Override the default BIOS image name BIOS.WPH with "file".
+   @rspfile     Response file containing more options
+   /A:address   32 bit address where to put the File Image.
+   /B:file      Override the default BIOS image name BIOS.WPH with "file".
+   /BBL         Program boot block.
+   /BU[=name]   Backup flash memory into BIOS.BAK before programming.
+                If "name" specified, override the default filename BIOS.BAK.
+   /C           Clear CMOS checksum after programming.
+   /CS          Verify BIOS.WPH image checksum.
+   /DMC:string  Specify chassis manufacturer DMI string.
+   /DMM:string  Specify motherboard manufacturer DMI string.
+   /DMS:string  Specify system manufacturer DMI string.
+   /DOxx:string Specify OEM DMI string number xx.
+   /DPC:string  Specify chassis asser tag number.
+   /DPM:string  Specify motherboard product ID DMI string.
+   /DPS:string  Specify system product ID DMI string.
+   /DSC:string  Specify chassis serial number DMI string.
+   /DSM:string  Specify motherboard serial number DMI string.
+   /DSS:string  Specify system serial number DMI string.
+   /DUS:string  Specify UUID DMI string.
+   /DVC:string  Specify chassis version DMI string.
+   /DVM:string  Specify motherboard version DMI string.
+   /DVS:string  Specify system version DMI string.
+   /DESC          Check the descriptor mode.
+   /DEV           Display device information from WPH file.
+   /EXIT          Exit without rebooting.
+   /E2            Generate a new UUID when current UUID is (FFF...FFF).
+   /H or /?       Help screen.
+   /I             Verify image size matches flash part size.
+   /MODE=n        Specify mode n (0, 1, 2, 3).
+   /MFG           Manufacturing mode - Automatically reboot without keypress.
+   /N             Program only if BIOS.WPH is different than system BIOS.
+   /NOB           Do not allow an older BIOS to be flashed to the platform.
+   /NIC           Update network controller driver with *.lom files.
+   /NOBIOSINFO    Do not display BIOS date and part number while flashing.
+   /O             Override (disable) all options from BIOS.WPH.
+   /P             Production mode (minimize messages and delays).
+   /PN            Program only if same BIOS part number.
+   /REMOTE        Specify remote operation over RS232
+   /RO[=name]     Read contents of flash part and save to a file.
+   /R=n           Retry flashing a block n times if flash fails.
+   /S             Silent operation (turn off speaker).
+   /SWAP=NO       Disable Axx autodetection.
+   /T             Show debug timing info (Warning: flash is done TEN TIMES!)
+   /V             Verify each block after programming it.
+   /VBL           Show warning for Vista Bitlocker.
+   /VGA           Update VGA module with *.dat files.
+   /X             Ignore XMS memory manager check.
+   /Z             Zero before erasing a block.
+   /UUID          Generate a new UUID .
+   /DOSKEY        Ignore DOSKEY check .
+   /Mod:filename  Update current system BIOS with the module specified by
+                  filename.
+   /Fbin:filename Update current system BIOS DMI with the interface file
+                  specified by filename, do not need image file.
+   /FileUUID      Generate a new UUID to BIOS image(Will not flash).
+   /ShowFileUUID  Show UUID of a BIOS bin file.
+   /Force         Update BIOS from image file directly without any modification.
+
+   To update entire system BIOS you also need the following file:
+   BIOS.WPH (the interface file with the BIOS image)

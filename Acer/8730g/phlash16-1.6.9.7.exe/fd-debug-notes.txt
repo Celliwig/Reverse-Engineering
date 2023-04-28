@@ -1,0 +1,40 @@
+debug phlash16.exe /mode=3 /ro=monkey.bin bb2-109.wph
+
+entry0:
+========
+-p 41		# To call to main
+-t		# Trace to main
+
+main:
+======
+0000:0872	# TUI init
+0000:08e7	# Load Image File
+0000:08eb	# Interface check
+0000:0962	# Display device info
+0000:0a99	# Backup Sys ROM
+0000:0bf2	# ???
+0000:0e5b	# Flash Type Check
+
+
+Patch image/code:
+------------------
+Once image file has been loaded code can be patched to aid execution
+
+Patch phlash pre-jump code: NOP the call that disables interrupts:
+f 27a6:812e,8132 90
+Patch external jump code: NOP loop in entry routine:
+f 5366:06bd,06be 90
+f 5366:0778,0779 90
+f 5366:078E,078F 90
+f 5366:07C2,07C3 90
+f 5366:07E0,07E1 90
+f 5366:07F2,07F3 90
+f 5366:079f,07a0 90
+f 5366:03d0,03d1 90
+f 5366:040E,040F 90
+f 5366:0420,0421 90
+Patch external jump code: NOP loop in exit routine:
+f 5366:0467,0468 90
+f 5366:0482,0483 90
+f 5366:0494,0495 90
+

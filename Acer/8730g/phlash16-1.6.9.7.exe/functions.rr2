@@ -1,0 +1,316 @@
+# Vars
+############
+f romImageProtectLW 2 @ 0x160
+f romImageProtectHW 2 @ 0x162
+f romImageAccessDataSize 4 @ 0x6340
+f romImageMMIOBaseTableLW 2 @ 0x6e86
+f romImageMMIOBaseTableHW 2 @ 0x6e88
+f jmpstoreROMAccess 4 @ 0x9362
+f jmpstoreROMAccessExternalLW 4 @ 0x9488
+f jmpstoreROMAccessExternalHW 4 @ 0x948a
+f romImageSizeLW 2 @ 0x94c8
+f romImageSizeHW 2 @ 0x94ca
+f romImageCopyPARTTBLLW 2 @ 0xa022
+f romImageCopyPARTTBLHW 2 @ 0xa024
+f addrFileBuffer 4 @ 0xa026
+f romImageZFLPFTableLW 2 @ 0xbd3c
+f romImageZFLPFTableHW 2 @ 0xbd3e
+f romImageCopyZFLPFTableLW 2 @ 0xbd44
+f romImageCopyZFLPFTableHW 2 @ 0xbd46
+
+# Functions
+############
+# Delete incorrect function definition
+af- 0x00000336
+af- 0x00000411
+
+# Delete incorrect function definition
+af- 0x00000522
+
+# Delete incorrect function definition
+f- fcn.00000857
+
+# Single retf
+afn fcn._retf[00001440] 0x00001440
+
+# displayTuiDraw
+afn fcn.displayTUIDraw[00001476] 0x00001476
+
+# displayTuiError
+afn fcn.displayTuiError[00001640] 0x00001640
+
+# Delete incorrect function definition
+af- fcn.000016b0
+
+# init_???
+afn fcn.init_???[000019b4] 0x000019b4
+
+# Init. vars.
+afn fcn.initVars[00001cee] 0x00001cee
+
+# displayTuiInit
+afn fcn.displayTuiInit[00002c10] 0x00002c10
+
+# tuiLoadImageFile2Mem
+afn fcn.tuiLoadImageFile2Mem[00002c4e] 0x00002c4e
+af- fcn.00002c5e
+af- fcn.00002d44
+af- fcn.00002d90
+af- fcn.00002f8c
+
+# tuiInterfaceCheck
+afn fcn.tuiInterfaceCheck[000034b4] 0x000034b4
+
+# tuiLoadImageFile
+afn fcn.tuiLoadImageFile[000034fe] 0x000034fe
+af- 0x0000350f
+af- 0x00003515
+af- 0x00003946
+af- 0x00003b12
+af- 0x00003c15
+af- 0x00003de6
+af- 0x00003df0
+af- 0x00003e8f
+af- 0x00003e9b
+af- 0x00003ea7
+af- 0x00003eb3
+af- 0x00003f8f
+af- 0x000041cf
+af- 0x000041f0
+af- 0x0000426f
+af- 0x00004282
+af- 0x000042a4
+af- 0x000042aa
+af- 0x0000434a
+af- 0x00004ade
+af- 0x00004e26
+
+# tuiBackupSysROM
+afn fcn.tuiBackupSysROM[00004b26] 0x00004b26
+
+# Delete incorrect function definition
+af- loc.00004c39
+af- fcn.00004c66
+
+# Delete incorrect function definition
+af- fcn.00005ebb
+
+# tuiInterfaceCheckMode1
+afn fcn.tuiInterfaceCheckMode1[00006496] 0x00006496
+af- 0x00006517
+af- 0x0000651f
+af- 0x00006523
+af- 0x00006579
+af- 0x000065c6
+af- 0x00006631
+
+# tuiFlashTypeCheck
+afn fcn.tuiFlashTypeCheck[00006fe0] 0x00006fe0
+af- 0x000070b0
+
+# picUpdateJumpROMExit
+afn fcn.picUpdateJumpROMExit[00008074] 0x00008074
+
+# picUpdateJumpROMEntry
+afn fcn.picUpdateJumpROMEntry[000080e6] 0x000080e6
+
+# tuiDisplayDevInfo
+afn fcn.tuiDisplayDevInfo[0000a5f0] 0x0000a5f0
+
+# displayInit
+afn fcn.displayInit[0000a6d6] 0x0000a6d6
+
+# displayCursorGet
+afn fcn.displayCursorGet[0000a8ba] 0x0000a8ba
+
+# displayDraw
+afn fcn.displayDraw[0000aa2a] 0x0000aa2a
+
+# displayDrawAAA
+afn fcn.displayDrawAAA[0000aa76] 0x0000aa76
+
+# displayDrawBBB
+afn fcn.displayDrawBBB[0000ab64] 0x0000ab64
+# Delete incorrect function definition
+af- 0x0000ab8b
+
+# displayDrawCCC
+afn fcn.displayDrawCCC[0000ac4d] 0x0000ac4d
+# Delete incorrect function definition
+af- 0x0000acc3
+
+# displayDrawDDD
+afn fcn.displayDrawDDD[0000ad06] 0x0000ad06
+
+# displayDrawEEE
+afn fcn.displayDrawEEE[0000ad2d] 0x0000ad2d
+
+# displayFiller
+afn fcn.displayFiller[0000add2] 0x0000add2
+
+# displayPrintStr
+afn fcn.displayPrintStr[0000ae06] 0x0000ae06
+
+# displayPrintStrA
+afn fcn.displayPrintStrA[0000ae20] 0x0000ae20
+
+# displayCharCopy
+afn fcn.displayCharCopy[0000aefe] 0x0000aefe
+
+# displayDrawProgress (progress???)
+afn fcn.displayDrawProgress[0000af2e] 0x0000af2e
+
+# getTime_???_Beep
+afn fcn.getTime_???_Beep[0000b068] 0x0000b068
+
+# keyStroke
+afn fcn.keyStroke[0000b17e] 0x0000b17e
+
+# Single retf
+afn fcn._retf[0000b23c] 0x0000b23c
+
+# spkBeep
+afn fcn.spkBeep[0000b54c] 0x0000b54c
+# Delete incorrect function definition
+af- fcn.0000b5b2
+
+# timeDelay200ms_N
+afn fcn.timeDelay200ms_N[0000b5ea] 0x0000b5ea
+# Delete incorrect function definition
+af- fcn.0000b5fa
+af- fcn.0000b629
+
+# fileOpen
+afn fcn.fileOpen[0000b678] 0x0000b678
+
+# fileFindNext
+afn fcn.fileFindNext[0000b6e6] 0x0000b6e6
+
+# memoryAllocate
+afn fcn.memoryAllocate[0000b718] 0x0000b718
+
+# memoryFree
+afn fcn.memoryFree[0000b768] 0x0000b768
+
+# fileCreate
+afn fcn.fileCreate[0000b7a0] 0x0000b7a0
+
+# fileDelete
+afn fcn.fileDelete[0000b7e4] 0x0000b7e4
+
+# fileOpen (existing)
+afn fcn.fileOpen[0000b822] 0x0000b822
+
+# fileClose
+afn fcn.fileClose[0000b866] 0x0000b866
+
+# fileRead
+afn fcn.fileRead[0000b89e] 0x0000b89e
+
+# fileWrite
+afn fcn.fileWrite[0000b8ea] 0x0000b8ea
+
+# fileSeek
+afn fcn.fileSeek[0000b97c] 0x0000b97c
+
+# intVectorGet
+afn fcn.intVectorGet[0000b9c0] 0x0000b9c0
+
+# intVectorUpdate
+afn fcn.intVectorUpdate[0000b9ec] 0x0000b9ec
+
+# dosVersion
+afn fcn.dosVersion[0000ba52] 0x0000ba52
+
+# memoryEMSStatus
+afn fcn.memoryEMSStatus[0000ba84] 0x0000ba84
+
+# memoryExtCheck
+afn fcn.memoryExtCheck[0000bac2] 0x0000bac2
+
+# dosKeyCheck
+afn fcn.dosKeyCheck[0000bb00] 0x0000bb00
+
+# vCtrlProgIntCheck
+afn fcn.vCtrlProgIntCheck[0000bb3c] 0x0000bb3c
+
+# dosProtectedCheck
+afn fcn.dosProtectedCheck[0000bb7a] 0x0000bb7a
+
+# argMode1Set
+afn fcn.argMode1Set[0000cc6c] 0x0000cc6c
+
+# argMode3Check
+afn fcn.argMode3Check[0000cc72] 0x0000cc72
+
+# argMode2Check
+afn fcn.argMode2Check[0000cc88] 0x0000cc88
+
+# argMode1Check
+afn fcn.argMode1Check[0000cc98] 0x0000cc98
+
+# argMode0Check
+afn fcn.argMode0Check[0000cca8] 0x0000cca8
+
+# romCheck4_BCPNVS_BCPSYS
+afn fcn.romCheck4_BCPNVS_BCPSYS[00010c3e] 0x00010c3e
+
+# romCheck4_???
+afn fcn.romCheck4_???[00011970] 0x00011970
+
+# jmpROMCode
+afn fcn.jmpROMCode[00013673] 0x00013673
+
+# APM disable
+afn fcn.apmDisable[000138ff] 0x000138ff
+
+# timeDelay_N
+afn fcn.timeDelay_N[00013928] 0x00013928
+
+# memCopy
+afn fcn.memCopy[000139be] 0x000139be
+
+# memCompare
+afn fcn.memCompare[000139ef] 0x000139ef
+
+# memFindStr
+afn fcn.memFindStr[00013ae7] 0x00013ae7
+
+# strCopy
+afn fcn.strCopy[0001644c] 0x0001644c
+
+# strCompareA
+afn fcn.strCompareA[00016488] 0x00016488
+
+# strSize
+afn fcn.strSize[000164b2] 0x000164b2
+
+# strCompareB
+afn fcn.strCompareB[0001652e] 0x0001652e
+
+# memFill
+afn fcn.memFill[00016f18] 0x00016f18
+
+# displayFill
+afn fcn.displayFill[00017208] 0x00017208
+
+# strSize
+afn fcn.strSize[00017266] 0x00017266
+
+# callWeird
+afn fcn.callWeird[00018bb1] 0x00018bb1
+
+# callWeirdCall
+af+ 0x00018cb4 fcn.callWeirdCall[00018cb4]
+
+# jmpIntCreated
+afn fcn.jmpIntCreated[00018da0] 0x00018da0
+
+# jmpIntCreated
+afn fcn.jmpIntCreated[00018e2a] 0x00018e2a
+
+# ioPortIn
+afn fcn.ioPortIn[00018ec6] 0x00018ec6
+
+# ioPortOut
+afn fcn.ioPortOut[00018ed4] 0x00018ed4
