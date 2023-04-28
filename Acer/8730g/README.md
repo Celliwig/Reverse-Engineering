@@ -28,9 +28,11 @@ So examining the executable with debug is useful and informative, but to get a b
 
 <br clear="right"/><br/>
 
-##Phlash16
-Initial analysis (r2 cmd: aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (partial listing below):
-```
+## Phlash16
+Initial analysis (aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (partial listing from radare below):
+
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
             ; CALL XREF from fcn.00001476 @ 0x147d(x)
             ; CALL XREF from fcn.000019b4 @ 0x19c3(x)
 ┌ 427: fcn.0000a6d6 ();
@@ -70,7 +72,8 @@ Initial analysis (r2 cmd: aaaa) in radare identifies a number of functions with 
 │           0000:a71e      51             push cx
 │           0000:a71f      6a10           push 0x10
 │           0000:a721      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
-```
+</code>
+</td></tr></table></div>
 
 ##ROM access code
 
