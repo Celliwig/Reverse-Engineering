@@ -1,0 +1,95 @@
+Vendor ID: 0x8086
+Device ID: 0x2919
+PCI command: 0x7
+PCI status: 0x210
+Revision: 0x3
+Prog. interface: 0x0
+Sub Class Code: 0x1
+Base Class Code: 0x6
+Primary Latency Timer: 0x0
+Header Type: 0x80
+Sub System Identifiers: 0x17e1025
+Capability List Pointer: 0xe0
+ACPI Base Address: 0x401
+ACPI Control: 0x80
+GPIO Base Address: 0x1181
+GPIO Control: 0x10
+PIRQ[A–D] Routing Control: 0x80808080
+Serial IRQ Control: 0xd0
+PIRQ[E–H] Routing Control: 0x80808080
+IOxAPIC Bus:Device:Function: 0xf8
+I/O Decode Ranges: 0x10
+LPC I/F Enables: 0x3f0f
+LPC I/F Generic Decode Range 1: 0x40069
+LPC I/F Generic Decode Range 2: 0x0
+LPC I/F Generic Decode Range 3: 0x0
+LPC I/F Generic Decode Range 4: 0x0
+Firmware Hub Select 1: 0x112e
+Firmware Hub Select 2: 0x4567
+Firmware Hub Decode Enable 1: 0xff00
+BIOS Control: 0x1
+Feature Detection Capability ID: 0x9
+Feature Detection Capability Length: 0xc
+Feature Detection Version: 0x10
+Feature Vector1: 0x3240220
+Feature Vector2: 0x64
+Root Complex Base Address: 0xfed1c001
+	Mapping 0xfed1c000: Okay
+Chipset Initialization Register 1: 0x109000
+Chipset Initialization Register 2: 0x86000040
+Chipset Initialization Register 3: 0x60b
+Chipset Initialization Register 13: 0xb2b577cc
+Chipset Initialization Register 5a: 0x0
+Chipset Initialization Register 5b: 0x0
+Chipset Initialization Register 6: 0xb203040
+Chipset Initialization Register 7: 0xb2b577cc
+Chipset Initialization Register 11: 0x0
+Chipset Initialization Register 12: 0x0
+Chipset Initialization Register 8: 0x1
+Chipset Initialization Register 9: 0x8000020
+Chipset Initialization Register 10: 0xbc008
+General Control and Status: 0xc60
+BIOS Flash Primary Region: 0x1fff
+Hardware Sequencing Flash Status: 0x2000
+Hardware Sequencing Flash Control: 0x0
+Flash Address: 0x2
+Flash Data 0: 0xffffffff
+Flash Data 1: 0xffff
+Flash Data 2: 0x0
+Flash Data 3: 0x0
+Flash Data 4: 0x0
+Flash Data 5: 0x0
+Flash Data 6: 0x0
+Flash Data 7: 0x0
+Flash Data 8: 0x0
+Flash Data 9: 0x0
+Flash Data 10: 0x0
+Flash Data 11: 0x0
+Flash Data 12: 0x0
+Flash Data 13: 0x0
+Flash Data 14: 0x0
+Flash Data 15: 0x0
+Flash Region Access Permissions: 0x202
+Flash Region 0: 0x1fff
+Flash Region 1: 0x1fff
+Flash Region 2: 0x1fff
+Flash Region 3: 0x1fff
+Flash Region 4: 0x1fff
+Flash Protected Range 0: 0x0
+Flash Protected Range 1: 0x0
+Flash Protected Range 2: 0x0
+Flash Protected Range 3: 0x0
+Flash Protected Range 4: 0x0
+Software Sequencing Flash Status: 0x4
+Software Sequencing Flash Control: 0x4220
+Prefix Opcode Configuration: 0x5006
+Opcode Type Configuration: 0x463b
+Opcode Menu Configuration1: 0x5200302
+Opcode Menu Configuration2: 0xc79f0190
+BIOS Base Address Configuration: 0x0
+Flash Descriptor Observability Control: 0x0
+Flash Descriptor Observability Data: 0xffffffff
+Additional Flash Control: 0x7
+Host Lower Vendor Specific Component Capabilities: 0x2009
+Host Upper Vendor Specific Component Capabilities: 0x0
+Flash Partition Boundary: 0x0

@@ -1,0 +1,230 @@
+			  Nuvaton/Winstron WPCE755
+			----------------------------
+
+Base Address	:= 0xff800000
+I/O Port	:= 0x66
+
+Offset 0x00:
+	0 - Run ???
+	1 - 
+	2 - 
+	3 - 
+	4 - 
+	5 - 
+	6 - 
+	7 - Running ???
+
+Offset 0x03: Command ????? 
+
+Revoke access:
+	MCU2 ???:
+		  [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+		         0x22  --[8b]--> [0xff800003]
+		         0x01  --[8b]--> [0xff800000] --[8b]--> Loop until bit 7 registers as 1
+		  [0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+
+	Restore SMI:
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0x40 - ACPI Base Address)
+		  0x8000f840  --[32b]--> IO[0xcf8]
+		# ACPI base + 0x30 = SMI Control and Enable
+		# Save SMI Control and Enable value
+		  IO[0xcfc]  --[16b]--> And 0xfffe --[16b]--> Add 0x0030 --[16b]--> IO[SMI-Ctrl-En] --[8b]--> VAR
+		# Restore SMI
+		  VAR --[8b]--> And 0xfe --[8b]--> Or <stored val> --[8b]--> IO[SMI-Ctrl-En]
+
+	Unknown:
+		# Disable ROM blocks???
+		  0x01  --[8b]--> 0xffbf0002
+		  0x01  --[8b]--> 0xffbe0002
+		  0x01  --[8b]--> 0xffbd0002
+		  0x01  --[8b]--> 0xffbc0002
+		  0x01  --[8b]--> 0xffbb0002
+		     ....                 ....
+		  0x01  --[8b]--> 0xffa00002
+
+	Finish:
+		# Protect against unintended writes?
+		 0x7fffffff  --[8b]--> IO[0xcf8]
+		# ACPI ???
+		  IO[0x400] --[16b]--> IO[0x400]
+		# Clear something ???
+		  IO[0x420] --[32b]--> IO[0x420]
+		# Clear Microcontroller SMI# Status bit (before enabling SMI)
+		  IO[0x434] --[32b]--> IO[0x434]
+		# Enable Power Button Enable (PWRBTN_EN)
+		  IO[0x402] --[16b]--> Or 0x100 --[16b]--> IO[0x402]
+
+
+Grant access:
+	ACPI:
+		# Disabled Power Button Enable (PWRBTN_EN)
+		  IO[0x402] --[16b]--> And 0xfeff --[16b]--> IO[0x402]
+
+	Configure LPC over PCI:
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0xD0 - Firmware Hub Select 1)
+		  0x8000f8d0 --[32b]--> IO[0xcf8]
+		# Select: FWH_C0_IDSEL (0xFF800000 / 0xFFC00000)
+		  IO[0xcfc] --[32b]--> And 0xfffffff0 --[32b]--> Or 0x0000000e --[32b]--> IO[0xcfc]
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0xD8 - Firmware Hub Decode Enable 1)
+		  0x8000f8d8 --[32b]--> IO[0xcf8]
+		# Select: FWH_C0_EN (0xFF800000 / 0xFFC00000)
+		  IO[0xcfc] --[16b]--> Or 0x0100 --[16b]--> IO[0xcfc]
+
+	MCU2 init (via I/O port):
+		# Operations padded with writes to IO[0xed] (to induce delay?)
+		# LDN 0x0f (Shared memory (SHM)):
+		  0x07 --[8b]--> IO[0x4e]
+		  0x0f --[8b]--> IO[0x4f]
+		# Reg 0xf0:
+		  0xf0 --[8b]--> IO[0x4e]
+		  IO[0x4f] --[8b]--> And 0x0f --[8b]--> Or 0xe0 --[8b]--> IO[0x4f]
+		# Reg 0xf1:
+		  0xf1 --[8b]--> IO[0x4e]
+		  IO[0x4f] --[8b]--> And 0xbf --[8b]--> Or 0x40 --[8b]--> IO[0x4f]
+		# Configure BAR (0xWWXXYYZZ)
+		# Reg 0xf8-0xfb:
+		  0xf8 --[8b]--> IO[0x4e]
+		  0xZZ --[8b]--> IO[0x4f]
+		  0xf9 --[8b]--> IO[0x4e]
+		  0xYY --[8b]--> IO[0x4f]
+		  0xfa --[8b]--> IO[0x4e]
+		  0xXX --[8b]--> IO[0x4f]
+		  0xfb --[8b]--> IO[0x4e]
+		  0xWW --[8b]--> IO[0x4f]
+		# Reg 0x30
+		  0x30 --[8b]--> IO[0x4e]
+		  0x01 --[8b]--> IO[0x4f]
+
+	# Access key perhaps?
+	MCU2 init (via BAR):
+		Loop start (iterating over init. data, stop after 0x0e):
+			[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until bit 0 registers AS 0
+			       0x5a  --[8b]--> [0xff800003]
+			init_data[0] --[8b]--> [0xff800006]
+			init_data[1] --[8b]--> [0xff800005]
+			init_data[4] --[8b]--> [0xff800009]
+			init_data[6] --[8b]--> [0xff80000a]
+			init_data[8] --[8b]--> [0xff800004]
+			init_data[7] --[8b]--> [0xff800007]
+			init_data[a] --[8b]--> [0xff800008]
+			       0x01  --[8b]--> [0xff80000b]
+			       0x00  --[8b]--> [0xff80000c]
+			init_data[b] --[8b]--> [0xff80000d]
+			init_data[b] --[8b]--> If equal to 0x08, replace with 0xff --[8b]--> [0xff80000e]
+			       0x01  --[8b]--> [0xff800000] --[8b]--> Loop until bit 7 registers AS 1
+			[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+
+			Make result:
+				[0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+				       0xc0  --[8b]--> [0xff800003]
+				       0x01  --[8b]--> [0xff800000] --[8b]--> Loop until bit 7 registers as 1
+				[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+
+				Build result:
+				[0xff800004] --[8b]--> xxxxxxXX
+				[0xff800005] --[8b]--> xxxxXXxx
+				[0xff800006] --[8b]--> xxXXxxxx
+				[0xff800007] --[8b]--> XXxxxxxx
+
+			Result (----XXXX) --[16b]--|
+			init_data[c] --[16b]--> Compare, exit if they match
+
+			Otherwise increment init data pointer, decrement counter & loop
+			Bail if counter hits zero
+	
+	MCU1 ???:
+		Loop(1) start (iterate upto 0xffff):
+			IO[0x66] --[8b]--> Loop until bit 1 registers AS 0, then jump to loop3
+
+		0x52 --[8b]--> IO[0x66]
+		Loop(2) start (iterate upto 0x9c40):
+			# Is this value important (It's read in, in loop1)? Or is this just a delay?
+			0x?? --[8b]--> IO[0xed]
+
+		Loop(3) start (iterate upto 0x0032):
+			Loop(3a) start (iterate upto 0x9c40):
+				# Is this value important (It's read in, in loop1)? Or is this just a delay?
+				0x?? --[8b]--> IO[0xed]
+
+	Configure LPC over PCI (again):
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0xD0 - Firmware Hub Select 1)
+		  0x8000f8d0 --[32b]--> IO[0xcf8]
+		# Select: FWH_C0_IDSEL (0xFF800000 / 0xFFC00000)
+		  IO[0xcfc] --[32b]--> And 0xfffffff0 --[32b]--> Or 0x0000000e --[32b]--> IO[0xcfc]
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0xD8 - Firmware Hub Decode Enable 1)
+		  0x8000f8d8 --[32b]--> IO[0xcf8]
+		# Select: FWH_C0_EN (0xFF800000 / 0xFFC00000)
+		  IO[0xcfc] --[16b]--> Or 0x0100 --[16b]--> IO[0xcfc]
+
+	MCU2 ???:
+		[0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+		       0x10  --[8b]--> [0xff800003]
+		       0x55  --[8b]--> [0xff800004]
+		       0xaa  --[8b]--> [0xff800005]
+		       0xcd  --[8b]--> [0xff800006]
+		       0xbe  --[8b]--> [0xff800007]
+		       0x01  --[8b]--> [0xff800000] --[8b]--> Loop until bit 7 registers as 1
+		[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
+
+	Disable SMI:
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0x40 - ACPI Base Address)
+		  0x8000f840  --[32b]--> IO[0xcf8]
+		# ACPI base + 0x30 = SMI Control and Enable
+		# Save SMI Control and Enable value
+		   IO[0xcfc]  --[16b]--> And 0xfffe --[16b]--> Add 0x0030 --[16b]--> IO[SMI-Ctrl-En] --[8b]--> VAR
+		# Disable SMI
+		  VAR --[8b]--> And 0xfe --[8b]--> Or 0x00 --[8b]--> IO[SMI-Ctrl-En]
+
+	BIOS Write Enable:
+		# PCI ISA bridge (LPC controller - Cfg Reg: 0xDC - BIOS Control)
+		  0x8000f8dc --[32b]--> IO[0xcf8]
+		# BIOS Write Enable (BIOSWE)
+		   IO[0xcfc] --[8b]--> Or 0x01 --[8b]--> IO[0xcfc]
+
+	Unknown:
+		# Enable ROM blocks???
+		  0x00  --[8b]--> 0xffbf0002
+		  0x00  --[8b]--> 0xffbe0002
+		  0x00  --[8b]--> 0xffbd0002
+		  0x00  --[8b]--> 0xffbc0002
+		  0x00  --[8b]--> 0xffbb0002
+		     ....                 ....
+		  0x00  --[8b]--> 0xffa00002
+
+	Finish:
+		# Protect against unintended writes?
+		  0x7fffffff  --[8b]--> IO[0xcf8]
+
+
+Init data:
+      0x0006  0x0005                  0x0009          0x000a  0x0007  0x0004          0x0008  0x000d   CMPa    CMPb
+	06	06	3B	16	02	03	20	05	90	C7	01	08	EF	13 
+	06	50	3B	16	02	03	20	05	90	60	01	01	BF	8E 
+	06	50	3B	16	02	03	20	05	90	60	01	01	BF	80 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	C2	13 
+	06	06	3B	16	02	03	20	05	9F	C7	01	08	1F	45 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	EF	14 
+	06	06	3B	16	02	03	20	05	9F	C7	01	08	20	15 
+	06	06	3B	16	02	03	20	05	9F	C7	01	08	1F	46 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	C2	14 
+	06	50	3B	16	02	03	20	05	90	60	01	01	BF	41 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	1C	14 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	EF	15 
+	06	06	3B	14	02	03	20	05	9F	C7	01	08	1F	47 
+	06	06	3B	16	02	03	20	05	90	C7	01	08	C2	15 
+
+Data dumped from debug
+-----------------------
+5366:09C0  06 06 3B 16 02 03 20 05-90 C7 01 08 EF 13 06 50 ..;... ........P
+5366:09D0  3B 16 02 03 20 05 90 60-01 01 BF 8E 06 50 3B 16 ;... ..`.....P;.
+5366:09E0  02 03 20 05 90 60 01 01-BF 80 06 06 3B 16 02 03 .. ..`......;...
+5366:09F0  20 05 90 C7 01 08 C2 13-06 06 3B 16 02 03 20 05  .........;... .
+5366:0A00  9F C7 01 08 1F 45 06 06-3B 16 02 03 20 05 90 C7 .....E..;... ...
+5366:0A10  01 08 EF 14 06 06 3B 16-02 03 20 05 9F C7 01 08 ......;... .....
+5366:0A20  20 15 06 06 3B 16 02 03-20 05 9F C7 01 08 1F 46  ...;... ......F
+5366:0A30  06 06 3B 16 02 03 20 05-90 C7 01 08 C2 14 06 50 ..;... ........P
+5366:0A40  3B 16 02 03 20 05 90 60-01 01 BF 41 06 06 3B 16 ;... ..`...A..;.
+5366:0A50  02 03 20 05 90 C7 01 08-1C 14 06 06 3B 16 02 03 .. .........;...
+5366:0A60  20 05 90 C7 01 08 EF 15-06 06 3B 14 02 03 20 05  .........;... .
+5366:0A70  9F C7 01 08 1F 47 06 06-3B 16 02 03 20 05 90 C7 .....G..;... ...
+5366:0A80  01 08 C2 15 00 00 00 00-00 00 00 00 00 00 00 00 ................

@@ -1,0 +1,27 @@
+# ROM access entry hook
+afn fcn.romEntryHook[00000000] 0x0000 
+
+# ROM access exit hook
+af+ 0x00fc fcn.romExitHook[000000fc]
+
+# memoryTouch
+af+ 0x01c0 fcn.memoryTouch[000001c0]
+
+# LPC ROM write enable
+af+ 0x019c fcn.lpcROMWriteEnable[0000019c]
+
+# ICH9 SMI config
+af+ 0x0258 fcn.ich9SMIConfig[00000258]
+
+# LPC ROM access
+af+ 0x0346 fcn.lpcROMAccess[00000346]
+
+# LPC MCU2 init
+af+ 0x04d7 fcn.lpcMCU2Init[000004d7]
+
+# SuperIO ????
+af+ 0x0467 fcn.superIOAAAA[00000467]
+
+# LPC init
+af+ 0x0636 fcn.lpcInit[00000636]
+

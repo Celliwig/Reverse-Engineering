@@ -1,0 +1,9 @@
+List of I/O ports + MMIO address available according to the present ICH9 config.
+
+ACPI Base Address: 0x401			=	0x400 (128 bytes wide) + 0xB2/0xB3
+GPIO Base Address: 0x1181			=	0x1180 (128 bytes wide)
+LPC I/F Enables: 0x3f0f				=	ComA, ComB, LPT, FDD, GameL (0x200-207), GameH (0x208-20F), 
+							KBC (0x60/0x64), MCU1 (0x62/0x66), LPC (0x2E/0x2F), MCU2 (0x4E/0x4F)
+LPC I/F Generic Decode Range 1: 0x40069		=	0x68 (256 bytes wide)
+Firmware Hub Select 1: 0x112e			=	FF80 0000h / FFC0 0000h
+Root Complex Base Address: 0xfed1c001

@@ -1,0 +1,87 @@
+superiotool r4.19-1255-gdc2285bc05
+Found Aspeed AST2400 (id=0x00) at 0x4e
+Register dump:
+idx 20 21 22 23 24 25 26 27  28 29 2a 2b 2c 2d 2e 2f
+val fc 11 00 00 00 00 00 a2  00 1c 00 00 00 00 00 00
+def 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+LDN 0x02 (SUART1)
+idx 30 60 61 70 71 f0
+val 00 00 00 00 00 00
+def 00 03 f8 04 02 RR
+LDN 0x03 (SUART2)
+idx 30 60 61 70 71 f0
+val 00 03 f8 04 03 02
+def 00 02 f8 03 02 00
+LDN 0x04 (SWC)
+idx 30 60 61 62 63 64 65 66  67 70 71
+val 00 00 00 00 00 00 00 00  00 00 03
+def 00 08 e6 08 e0 08 e4 08  e8 09 01
+LDN 0x05 (Keyboard config (KBC))
+idx 30 60 61 62 63 70 71 72  73 f0
+val 01 00 00 00 00 0c 03 00  00 00
+def 00 00 60 00 64 01 02 0c  02 83
+LDN 0x07 (GPIO)
+idx 30 38 70 71
+val 00 00 00 03
+def 00 00 0b 01
+LDN 0x0b (SUART3)
+idx 30 60 61 70 71 f0
+val 00 00 00 00 00 00
+def 00 03 e8 06 02 00
+LDN 0x0c (SUART4)
+idx 30 60 61 70 71 f0
+val 00 00 00 00 00 00
+def 00 02 e8 05 02 00
+LDN 0x0d (iLPC2AHB)
+idx 30 70 71 f0 f1 f2 f3 f4  f5 f6 f7 f8 fe
+val 00 00 00 00 00 00 00 00  00 00 00 00 00
+def 00 09 01 NA NA NA NA NA  NA NA NA 00 00
+LDN 0x0e (Mailbox)
+idx 30 60 61 70 71
+val 00 00 00 00 00
+def 00 08 c0 09 01
+Found Nuvoton WPCE775x / NPCE781x (id=0x05, rev=0x02) at 0x4e
+Register dump:
+idx 20 21 22 23 24 25 26 27  28 29 2a 2b 2c 2d 2e 2f
+val fc 11 00 00 00 00 00 a2  00 1c 00 00 00 00 00 00
+def fc 11 RR RR RR 00 00 MM  00 04 RR RR RR 00 RR RR
+LDN 0x03 (CIR Port (CIRP))
+idx 30 60 61 70 71 74 75 f0
+val 00 03 f8 04 03 04 04 02
+def 00 03 f8 04 03 04 04 02
+LDN 0x04 (Mobile System Wake-Up Control Config (MSWC))
+idx 30 60 61 70 71 74 75
+val 00 00 00 00 03 04 04
+def 00 00 00 00 03 04 04
+LDN 0x05 (Mouse config (KBC))
+idx 30 70 71 74 75
+val 01 0c 03 04 04
+def 00 0c 03 04 04
+LDN 0x06 (Keyboard config (KBC))
+idx 30 60 61 62 63 70 71 74  75
+val 01 00 60 00 64 01 03 04  04
+def 00 00 60 00 64 01 03 04  04
+LDN 0x0f (Shared memory (SHM))
+idx 30 60 61 70 71 74 75 f0  f1 f2 f3 f4 f5 f6 f7 f8  f9 fa fb
+val 01 16 00 00 00 04 04 e8  4b 00 00 00 00 81 ff 00  00 80 ff
+def 00 00 00 00 00 04 04 MM  07 RR RR 00 00 00 00 00  00 00 00
+LDN 0x11 (Power management I/F Channel 1 (PM1))
+idx 30 60 61 62 63 70 71 74  75
+val 01 00 62 00 66 00 03 04  04
+def 00 00 62 00 66 01 03 04  04
+LDN 0x12 (Power management I/F Channel 2 (PM2))
+idx 30 60 61 62 63 70 71 74  75
+val 01 00 68 00 6c 00 03 04  04
+def 00 00 68 00 6c 01 03 04  04
+LDN 0x15 (Enhanced Wake On CIR (EWOC))
+idx 30 60 61 62 63 70 71 74  75
+val 00 00 00 00 00 00 03 04  04
+def 00 00 00 00 00 00 03 04  04
+LDN 0x17 (Power Management I/F Channel 3 (PM3))
+idx 30 60 61 62 63 70 71 74  75
+val 01 00 6a 00 6e 06 03 04  04
+def 00 00 6a 00 6e 01 03 04  04
+LDN 0x1a (Serial Port with Fast Infrared Port (FIR))
+idx 30 60 61 70 71 74 75 f0
+val 00 02 f8 03 03 04 04 02
+def 00 02 f8 03 03 04 04 02
