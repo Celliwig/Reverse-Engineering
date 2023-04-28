@@ -72,6 +72,148 @@ Initial analysis (aaaa) in radare identifies a number of functions with only the
 │           0000:a71e      51             push cx
 │           0000:a71f      6a10           push 0x10
 │           0000:a721      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a726      83c40a         add sp, 0xa
+│           0000:a729      c746f2000f     mov word [var_eh], 0xf00     ; [0xf00:2]=0x681e
+│           0000:a72e      8d46e4         lea ax, [var_1ch]
+│           0000:a731      16             push ss
+│           0000:a732      50             push ax
+│           0000:a733      8d4ef2         lea cx, [var_eh]
+│           0000:a736      16             push ss
+│           0000:a737      51             push cx
+│           ; CODE XREFS from section.seg_012 @ +0x17b1(x), +0x17d9(x), +0x17e1(x)
+│           0000:a738      6a10           push 0x10
+│           0000:a73a      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a73f      83c40a         add sp, 0xa
+│           0000:a742      8a46e4         mov al, byte [var_1ch]
+│           0000:a745      2ae4           sub ah, ah
+│           0000:a747      48             dec ax
+│           0000:a748      48             dec ax
+│           0000:a749      7455           je 0xa7a0
+│           0000:a74b      48             dec ax
+│           0000:a74c      0f848800       je 0xa7d8
+│           0000:a750      2d0400         sub ax, 4
+│           ; CODE XREF from section.seg_012 @ +0x17a5(x)
+│           0000:a753      743a           je 0xa78f
+│           0000:a755      c746f20700     mov word [var_eh], 7
+│           0000:a75a      8d46e4         lea ax, [var_1ch]
+│           ; CODE XREF from section.seg_012 @ +0x17a9(x)
+│           0000:a75d      16             push ss
+│           0000:a75e      50             push ax
+│           0000:a75f      8d4ef2         lea cx, [var_eh]
+│           0000:a762      16             push ss
+│           ; CODE XREFS from section.seg_012 @ +0x1752(x), +0x17cb(x)
+│           0000:a763      51             push cx
+│           0000:a764      6a10           push 0x10
+│           0000:a766      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a76b      83c40a         add sp, 0xa
+│           0000:a76e      c746f2000f     mov word [var_eh], 0xf00     ; [0xf00:2]=0x681e
+│           0000:a773      8d46e4         lea ax, [var_1ch]
+│           0000:a776      16             push ss
+│           0000:a777      50             push ax
+│           ; CODE XREFS from section.seg_012 @ +0x174f(x), +0x1813(x), +0x182c(x)
+│           0000:a778      8d4ef2         lea cx, [var_eh]
+│           0000:a77b      16             push ss
+│           0000:a77c      51             push cx
+│           0000:a77d      6a10           push 0x10
+│           0000:a77f      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a784      83c40a         add sp, 0xa
+│           0000:a787      807ee407       cmp byte [var_1ch], 7
+│           0000:a78b      0f8558ff       jne 0xa6e7
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa753(x)
+│           0000:a78f      66c7062e3b00.  mov dword [0x3b2e], 0xb0000000 ; [0x3b2e:4]=0x1312089e
+│           0000:a798      c7064673b403   mov word [0x7346], 0x3b4     ; [0x7346:2]=0xb49a
+│           0000:a79e      eb33           jmp 0xa7d3
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa749(x)
+│           0000:a7a0      c746f20152     mov word [var_eh], 0x5201    ; [0x5201:2]=0x9a05
+│           0000:a7a5      8d46e4         lea ax, [var_1ch]
+│           0000:a7a8      16             push ss
+│           ; CODE XREF from section.seg_012 @ +0x17f6(x)
+│           0000:a7a9      50             push ax
+│           0000:a7aa      8d46f2         lea ax, [var_eh]
+│           0000:a7ad      16             push ss
+│           0000:a7ae      50             push ax
+│           0000:a7af      6a10           push 0x10
+│           0000:a7b1      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a7b6      83c40a         add sp, 0xa
+│           0000:a7b9      837ee600       cmp word [var_1ah], 0
+│           0000:a7bd      0f8426ff       je 0xa6e7
+│           0000:a7c1      8b46e6         mov ax, word [var_1ah]
+│           0000:a7c4      c7062e3b0000   mov word [0x3b2e], 0         ; [0x3b2e:2]=0x89e
+│           0000:a7ca      a3303b         mov word [0x3b30], ax        ; [0x3b30:2]=0x1312
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa7e1(x)
+│           0000:a7cd      c7064673d403   mov word [0x7346], 0x3d4     ; [0x7346:2]=0xb49a
+│           ; CODE XREFS from fcn.0000a6d6 @ 0xa79e(x), 0xa881(x)
+│           0000:a7d3      b8ffff         mov ax, 0xffff
+│           ; CODE XREFS from section.seg_012 @ +0x1851(x), +0x185f(x)
+│           0000:a7d6      c9             leave
+│           0000:a7d7      cb             retf
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa74c(x)
+│           0000:a7d8      66c7062e3b00.  mov dword [0x3b2e], 0xb8000000 ; [0x3b2e:4]=0x1312089e
+│           0000:a7e1      ebea           jmp 0xa7cd
+            0000:a7e3      90             nop
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa70c(x)
+│           0000:a7e4      c746f2001a     mov word [var_eh], 0x1a00    ; [0x1a00:2]=0x1215
+│           0000:a7e9      8d46e4         lea ax, [var_1ch]
+│           0000:a7ec      16             push ss
+│           0000:a7ed      50             push ax
+│           0000:a7ee      8d4ef2         lea cx, [var_eh]
+│           0000:a7f1      16             push ss
+│           0000:a7f2      51             push cx
+│           0000:a7f3      6a10           push 0x10
+│           0000:a7f5      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a7fa      83c40a         add sp, 0xa
+│           ; CODE XREF from section.seg_012 @ +0x188e(x)
+│           0000:a7fd      807ee41a       cmp byte [var_1ch], 0x1a
+│           0000:a801      0f85e2fe       jne 0xa6e7
+│           0000:a805      f606840108     test byte [0x184], 8         ; [0x184:1]=80
+│           0000:a80a      7519           jne 0xa825
+│           0000:a80c      c746f20300     mov word [var_eh], 3
+│           0000:a811      8d46e4         lea ax, [var_1ch]
+│           0000:a814      16             push ss
+│           0000:a815      50             push ax
+│           0000:a816      8d46f2         lea ax, [var_eh]
+│           0000:a819      16             push ss
+│           0000:a81a      50             push ax
+│           0000:a81b      6a10           push 0x10
+│           0000:a81d      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a822      83c40a         add sp, 0xa
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa80a(x)
+│           0000:a825      c746f2000f     mov word [var_eh], 0xf00     ; [0xf00:2]=0x681e
+│           0000:a82a      8d46e4         lea ax, [var_1ch]
+│           0000:a82d      16             push ss
+│           0000:a82e      50             push ax
+│           0000:a82f      8d4ef2         lea cx, [var_eh]
+│           0000:a832      16             push ss
+│           0000:a833      51             push cx
+│           0000:a834      6a10           push 0x10
+│           0000:a836      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a83b      83c40a         add sp, 0xa
+│           0000:a83e      807ee403       cmp byte [var_1ch], 3
+│           0000:a842      7512           jne 0xa856
+│           0000:a844      66c7062e3b00.  mov dword [0x3b2e], 0xb8000000 ; [0x3b2e:4]=0x1312089e
+│           0000:a84d      c7064673d403   mov word [0x7346], 0x3d4     ; [0x7346:2]=0xb49a
+│           0000:a853      eb10           jmp 0xa865
+            0000:a855      90             nop
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa842(x)
+│           0000:a856      66c7062e3b00.  mov dword [0x3b2e], 0xb0000000 ; [0x3b2e:4]=0x1312089e
+│           0000:a85f      c7064673b403   mov word [0x7346], 0x3b4     ; [0x7346:2]=0xb49a
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa853(x)
+│           0000:a865      66c746f20310.  mov dword [var_eh], 0x1003   ; [0x1003:4]=0xc4830fb6
+│           0000:a86d      8d46e4         lea ax, [var_1ch]
+│           0000:a870      16             push ss
+│           0000:a871      50             push ax
+│           0000:a872      8d46f2         lea ax, [var_eh]
+│           0000:a875      16             push ss
+│           0000:a876      50             push ax
+│           0000:a877      6a10           push 0x10
+│           0000:a879      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a87e      83c40a         add sp, 0xa
+└           0000:a881      e94fff         jmp 0xa7d3
+</code>
+</td></tr></table></div>
+
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
 </code>
 </td></tr></table></div>
 
