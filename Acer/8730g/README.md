@@ -28,6 +28,53 @@ So examining the executable with debug is useful and informative, but to get a b
 
 <br clear="right"/><br/>
 
+##Phlash16
+Initial analysis (r2 cmd: aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (partial listing below):
+```
+            ; CALL XREF from fcn.00001476 @ 0x147d(x)
+            ; CALL XREF from fcn.000019b4 @ 0x19c3(x)
+┌ 427: fcn.0000a6d6 ();
+│           ; var int16_t var_eh @ bp-0xe
+│           ; var uint32_t var_19h @ bp-0x19
+│           ; var uint32_t var_1ah @ bp-0x1a
+│           ; var uint32_t var_1ch @ bp-0x1c
+│           0000:a6d6      c81e0000       enter 0x1e, 0
+│           0000:a6da      33db           xor bx, bx
+│           0000:a6dc      8ec3           mov es, bx
+│           0000:a6de      6626833e4000.  cmp dword es:[0x40], 0
+│           0000:a6e5      7505           jne 0xa6ec
+│           ; CODE XREFS from fcn.0000a6d6 @ 0xa78b(x), 0xa7bd(x), 0xa801(x)
+│           0000:a6e7      33c0           xor ax, ax
+│           0000:a6e9      c9             leave
+│           0000:a6ea      cb             retf
+            0000:a6eb      90             nop
+│           ; CODE XREF from fcn.0000a6d6 @ 0xa6e5(x)
+│           0000:a6ec      66c746f20012.  mov dword [var_eh], 0x55101200 ; [0x55101200:4]=-1
+│           0000:a6f4      8d46e4         lea ax, [var_1ch]
+│           0000:a6f7      16             push ss
+│           0000:a6f8      50             push ax
+│           0000:a6f9      8d4ef2         lea cx, [var_eh]
+│           0000:a6fc      16             push ss
+│           0000:a6fd      51             push cx
+│           0000:a6fe      6a10           push 0x10
+│           0000:a700      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+│           0000:a705      83c40a         add sp, 0xa
+│           0000:a708      807ee755       cmp byte [var_19h], 0x55     ; 'U'
+│           0000:a70c      0f85d400       jne 0xa7e4
+│           0000:a710      c746f20300     mov word [var_eh], 3
+│           0000:a715      8d46e4         lea ax, [var_1ch]
+│           0000:a718      16             push ss
+│           0000:a719      50             push ax
+│           0000:a71a      8d4ef2         lea cx, [var_eh]
+│           0000:a71d      16             push ss
+│           0000:a71e      51             push cx
+│           0000:a71f      6a10           push 0x10
+│           0000:a721      9a805c1213     lcall fcn.00018da0           ; RELOC 16 
+```
+
+##ROM access code
+
+
 ## References
 1. https://www.seabios.org/SeaBIOS
 2. https://www.tianocore.org/
