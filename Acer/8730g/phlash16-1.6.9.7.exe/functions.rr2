@@ -124,6 +124,12 @@ afn fcn.displayInit[0000a6d6] 0x0000a6d6
 # displayCursorGet
 afn fcn.displayCursorGet[0000a8ba] 0x0000a8ba
 
+# crtController????
+afn fcn.crtController????[0000a8d6] 0x0000a8d6
+
+# crtController????
+afn fcn.crtController????[0000a974] 0x0000a974
+
 # displayDraw
 afn fcn.displayDraw[0000aa2a] 0x0000aa2a
 
