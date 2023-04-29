@@ -59,6 +59,9 @@ af- fcn.00002d44
 af- fcn.00002d90
 af- fcn.00002f8c
 
+# imageFileOpen
+afn fcn.imageFileOpen[00002fea] 0x00002fea
+
 # tuiInterfaceCheck
 afn fcn.tuiInterfaceCheck[000034b4] 0x000034b4
 
@@ -282,6 +285,18 @@ afn fcn.memCompare[000139ef] 0x000139ef
 
 # memFindStr
 afn fcn.memFindStr[00013ae7] 0x00013ae7
+
+# fileOpenInit
+afn fcn.fileOpenInit[000146e8] 0x000146e8
+
+# fileOpenWrapper
+afn fcn.fileOpenWrapper[0001471c] 0x0001471c
+
+# fileOpen
+afn fcn.fileOpen[00014cea] 0x00014cea
+
+# fileOpenOptions
+afn fcn.fileOpenOptions[0001602e] 0x0001602e
 
 # strCopy
 afn fcn.strCopy[0001644c] 0x0001644c
