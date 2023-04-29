@@ -95,7 +95,7 @@ Grant access:
 		  0x30 --[8b]--> IO[0x4e]
 		  0x01 --[8b]--> IO[0x4f]
 
-	# Access key perhaps?
+	# Select correct ROM ?
 	MCU2 init (via BAR):
 		Loop start (iterating over init. data, stop after 0x0e):
 			[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until bit 0 registers AS 0
@@ -114,6 +114,7 @@ Grant access:
 			       0x01  --[8b]--> [0xff800000] --[8b]--> Loop until bit 7 registers AS 1
 			[0xff800000] --[8b]--> And 0xfe --[8b]--> [0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
 
+			# Get JEDEC ID ?
 			Make result:
 				[0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
 				       0xc0  --[8b]--> [0xff800003]
@@ -228,3 +229,18 @@ Data dumped from debug
 5366:0A60  20 05 90 C7 01 08 EF 15-06 06 3B 14 02 03 20 05  .........;... .
 5366:0A70  9F C7 01 08 1F 47 06 06-3B 16 02 03 20 05 90 C7 .....G..;... ...
 5366:0A80  01 08 C2 15 00 00 00 00-00 00 00 00 00 00 00 00 ................
+
+
+phlash16.exe /mode=3 /dev bb2-109.wph
+
+                    Phoenix Phlash16 Utility Version 1.6.9.7
+
+  L I S T   O F   S U P P O R T E D   F L A S H   D E V I C E S
+
+
+  MfgID       PartID         Part Size        Version       Part Name
+ --------------------------------------------------------------------
+ efh          14h            2048             ALPHA       W25X16
+ c2h          14h            2048             ALPHA       WMX25L1605D
+ bfh          41h            2048             ALPHA       SST25VF016B
+ 1ch          14h            2048             ALPHA       WEN25F16
