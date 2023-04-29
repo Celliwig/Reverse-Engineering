@@ -29,7 +29,10 @@ So examining the executable with debug is useful and informative, but to get a b
 <br clear="right"/><br/>
 
 ## Phlash16
-Initial analysis (aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (listing from radare below):
+Initial analysis (aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to understand a program is the user I/O and this is where things started to become interesting. 
+
+#### Obfuscation (Part 1)
+As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (listing from radare below):
 
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -299,7 +302,7 @@ The first thing it does is move 0xcd into a memory address, fetch a value from t
             1000:8dcf      8d46f6         lea ax, [bp - 0xa]
             1000:8dd2      8946f2         mov word [bp - 0xe], ax
 ```
-Setups up any required registers:
+Loads any required registers:
 ```
             1000:8dd9      8b05           mov ax, word [di]
             1000:8ddb      8b5d02         mov bx, word [di + 2]
@@ -314,6 +317,7 @@ Then jumps to the newly created mini-function:
 ```
 So all this is just a way to obfuscate INT calls, so having defined this function it can be seen that the previous one does in fact initialise the screen (among other things). This sets the tone for the analyse of the rest of this binary.
 
+#### I/O Ports
 Speaking of tone, in the function that calls initialise screen (which is the 2nd function):
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -477,7 +481,79 @@ Writing to an I/O port.
 ```
 Reading from an I/O port.
 
+Applying this knowlege to the previous function it can be seen that it's interogating I/O ports 0x70-71 which is RTC, and is infact reading the time (defining the function is helpful because it's call'ed from all over the code). Note that I/O port 0x80 is the BIOS debug port, and if implemented is just a register connected to a hexadecimal LED/LCD display and normally shows POST codes from the firmware at startup.
 
+Also called from this function is this:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 7: fcn.0000b54c (int16_t arg3);
+│           ; arg int16_t arg3 @ bx
+│           0000:b54c      c8020000       enter 2, 0
+└           0000:b550      e98900         jmp 0xb5dc
+            0000:b553      90             nop
+            ; CODE XREF from fcn.0000b54c @ +0x98(x)
+            0000:b554      66684300b600   push 0xb60043                ; 'C'
+            0000:b55a      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+            0000:b55f      83c404         add sp, 4
+            0000:b562      c45e06         les bx, [bp + 6]
+            0000:b565      2ae4           sub ah, ah
+            0000:b567      268a07         mov al, byte es:[bx]
+            0000:b56a      50             push ax
+            0000:b56b      6a42           push 0x42                    ; 'B'
+            0000:b56d      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+            0000:b572      83c404         add sp, 4
+            0000:b575      c45e06         les bx, [bp + 6]
+            0000:b578      2ae4           sub ah, ah
+            0000:b57a      268a4701       mov al, byte es:[bx + 1]
+            0000:b57e      50             push ax
+            0000:b57f      6a42           push 0x42                    ; 'B'
+            0000:b581      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+            0000:b586      83c404         add sp, 4
+            ; CODE XREF from loc.0001b2df @ +0x26f(x)
+            0000:b589      c45e06         les bx, [bp + 6]
+            0000:b58c      26833f00       cmp word es:[bx], 0
+            0000:b590      7417           je 0xb5a9
+            0000:b592      6a61           push 0x61                    ; 'a'
+            0000:b594      9aa65d1213     lcall fcn.00018ec6           ; RELOC 16 
+            0000:b599      83c402         add sp, 2
+            0000:b59c      0c03           or al, 3
+            0000:b59e      50             push ax
+            0000:b59f      6a61           push 0x61                    ; 'a'
+            0000:b5a1      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+            0000:b5a6      83c404         add sp, 4
+            ; CODE XREF from fcn.0000b54c @ +0x44(x)
+            0000:b5a9      c45e06         les bx, [bp + 6]
+            0000:b5ac      26ff7702       push word es:[bx + 2]
+            0000:b5b0      0e             push cs
+            0000:b5b1      e83600         call fcn.0000b5ea
+            0000:b5b4      83c402         add sp, 2
+            0000:b5b7      c45e06         les bx, [bp + 6]
+            0000:b5ba      26833f00       cmp word es:[bx], 0
+            0000:b5be      7418           je 0xb5d8
+            0000:b5c0      6a61           push 0x61                    ; 'a'
+            0000:b5c2      9aa65d1213     lcall fcn.00018ec6           ; RELOC 16 
+            0000:b5c7      83c402         add sp, 2
+            0000:b5ca      25fc00         and ax, 0xfc
+            0000:b5cd      50             push ax
+            0000:b5ce      6a61           push 0x61                    ; 'a'
+            0000:b5d0      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+            0000:b5d5      83c404         add sp, 4
+            ; CODE XREF from fcn.0000b54c @ +0x72(x)
+            0000:b5d8      83460604       add word [bp + 6], 4
+            ; CODE XREF from fcn.0000b54c @ 0xb550(x)
+            0000:b5dc      c45e06         les bx, [bp + 6]
+            0000:b5df      26837f0200     cmp word es:[bx + 2], 0
+            0000:b5e4      0f856cff       jne 0xb554
+            0000:b5e8      c9             leave
+            0000:b5e9      cb             retf
+</code>
+</td></tr></table></div>
+It's not particularly important, and even potentially annoying. It's writing to I/O ports 0x42-43 which is the PIT (Programmable Interval Timer), and port 0x61 which is the KBC (KeyBoard Controller). What do these things have in common? The PC speaker. The PIT generates the tone, and there's a gate in the KBC which enables the PIT to drive the PC speaker. The 'call fcn.0000b5ea' is a jump to a time delay which sets the interval of the beep.
+
+#### QEMU options
+The function is not needed (phlash even has a parameter to disable it), but I (briefly) thought it'd be nice to have QEMU output the beep which it does support. Adding the arguements '-audiodev alsa,id=default -machine pcspk-audiodev=default' to QEMU's command line parameters rewards you with the PC speaker on your sound card.
+
+While this option is not particularly needed, even wanted, a more helpful option came to light while reading QEMU's manpage. The VGA display is, by default, routed to an SDL backed window which provides the system monitor. There is an option available, '-display curses', which instead renders the VGA display using the (n)curses library. Obviously this useless for a graphical mode where it'll display nothing, but handy when the system is in text mode as here. Specifically with the debugger you can select and copy data from the text display which makes note taking far quicker!
 
 
 ##ROM access code
