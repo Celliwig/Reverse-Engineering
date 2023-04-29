@@ -5,6 +5,7 @@ f romImageProtectHW 2 @ 0x162
 f romImageAccessDataSize 4 @ 0x6340
 f romImageMMIOBaseTableLW 2 @ 0x6e86
 f romImageMMIOBaseTableHW 2 @ 0x6e88
+f crtControllerIOPort 2 @ 0x7346
 f jmpstoreROMAccess 4 @ 0x9362
 f jmpstoreROMAccessExternalLW 4 @ 0x9488
 f jmpstoreROMAccessExternalHW 4 @ 0x948a
