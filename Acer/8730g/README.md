@@ -481,7 +481,7 @@ Writing to an I/O port.
 ```
 Reading from an I/O port.
 
-Applying this knowlege to the previous function it can be seen that it's interogating I/O ports 0x70-71 which is RTC, and is infact reading the time (defining the function is helpful because it's call'ed from all over the code). Note that I/O port 0x80 is the BIOS debug port, and if implemented is just a register connected to a hexadecimal LED/LCD display and normally shows POST codes from the firmware at startup.
+Applying this knowlege to the previous function it can be seen that it's interogating I/O ports 0x70-71 which is the RTC, and is infact reading the time (defining this function is helpful because it's call'ed from all over the code). Note that I/O port 0x80 is the BIOS debug port, and if implemented is just a register connected to a hexadecimal LED/LCD display and normally shows POST codes from the firmware at startup.
 
 Also called from this function is this:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
@@ -554,6 +554,32 @@ It's not particularly important, and even potentially annoying. It's writing to 
 The function is not needed (phlash even has a parameter to disable it), but I (briefly) thought it'd be nice to have QEMU output the beep which it does support. Adding the arguements '-audiodev alsa,id=default -machine pcspk-audiodev=default' to QEMU's command line parameters rewards you with the PC speaker on your sound card.
 
 While this option is not particularly needed, even wanted, a more helpful option came to light while reading QEMU's manpage. The VGA display is, by default, routed to an SDL backed window which provides the system monitor. There is an option available, '-display curses', which instead renders the VGA display using the (n)curses library. Obviously this useless for a graphical mode where it'll display nothing, but handy when the system is in text mode as here. Specifically with the debugger you can select and copy data from the text display which makes note taking far quicker!
+
+#### Obfuscation (Part 2)
+Analysis of the binary continued, picking off functions where it's purpose could be easily identified or was deemed particularly important. One bit off obfuscation that came up continually was this:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+│           0000:37cb      b87e1d         mov ax, 0x1d7e               ; '~\x1d' ;
+│           0000:37ce      8cda           mov dx, ds                   ;
+│           0000:37d0      80e40f         and ah, 0xf
+│           0000:37d3      03c0           add ax, ax
+│           0000:37d5      13d2           adc dx, dx
+│           0000:37d7      13c0           adc ax, ax
+│           0000:37d9      13d2           adc dx, dx
+│           0000:37db      13c0           adc ax, ax                   ; "j"
+│           0000:37dd      13d2           adc dx, dx
+│           0000:37df      13c0           adc ax, ax
+│           0000:37e1      13d2           adc dx, dx
+│           0000:37e3      13c0           adc ax, ax
+│           0000:37e5      92             xchg ax, dx
+│           0000:37e6      83e20f         and dx, 0xf
+│           0000:37e9      05871d         add ax, 0x1d87
+│           0000:37ec      83d200         adc dx, 0
+│           0000:37ef      52             push dx
+│           0000:37f0      50             push ax
+</code>
+</td></tr></table></div>
+This basically pushes the address 4000:4FEA onto the stack, and this turns out to be the pointer to the string 'MMIOBASE'.
 
 
 ##ROM access code
