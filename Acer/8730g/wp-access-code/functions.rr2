@@ -1,3 +1,6 @@
+# Load C struct prototypes
+to ./wp-access-code/prototype_mcu2_data.h
+
 # ROM access entry hook
 afn fcn.romEntryHook[00000000] 0x0000 
 
@@ -25,3 +28,6 @@ af+ 0x0467 fcn.superIOAAAA[00000467]
 # LPC init
 af+ 0x0636 fcn.lpcInit[00000636]
 
+# MCU2 init data
+f+ data.mcu2InitData 0xc4 @ 0x0676
+tl mcu2_itable = 0x0676
