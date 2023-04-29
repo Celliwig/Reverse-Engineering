@@ -29,12 +29,10 @@ So examining the executable with debug is useful and informative, but to get a b
 <br clear="right"/><br/>
 
 ## Phlash16
-Initial analysis (aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (partial listing from radare below):
+Initial analysis (aaaa) in radare identifies a number of functions with only the entry point and main function being labeled (which is not surprising). A good place to start when trying to disassemble a program is the user I/O and this is where things started to become interesting. As this is a DOS program it would be expected that the program would use INT 10h to print information to the screen. Searching the program code for '0xcd 0x10' (INT 10h instruction) doesn't produce many results, so the debug commands step over ('p') and step into ('t') were used to identify a section of code that updated the screen. After a few attempts a block was identified that among other things cleared the screen (listing from radare below):
 
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
-            ; CALL XREF from fcn.00001476 @ 0x147d(x)
-            ; CALL XREF from fcn.000019b4 @ 0x19c3(x)
 ┌ 427: fcn.0000a6d6 ();
 │           ; var int16_t var_eh @ bp-0xe
 │           ; var uint32_t var_19h @ bp-0x19
@@ -212,10 +210,275 @@ Initial analysis (aaaa) in radare identifies a number of functions with only the
 </code>
 </td></tr></table></div>
 
+There's no INT instructions throughout the function, it just calls the same function with different parameters, so lets look at that.
+
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
+┌ 36: fcn.00018da0 (int16_t arg_6h);
+│           ; arg int16_t arg_6h @ bp+0x6
+│           ; var int16_t var_8h @ bp-0x8
+│           ; var int16_t var_9h @ bp-0x9
+│           ; var int16_t var_ah @ bp-0xa
+│           1000:8da0      55             push bp
+│           1000:8da1      8bec           mov bp, sp
+│           1000:8da3      56             push si
+│           1000:8da4      57             push di
+│           1000:8da5      83ec0a         sub sp, 0xa
+│           1000:8da8      c646f6cd       mov byte [var_ah], 0xcd      ; [0xcd:1]=131
+│           1000:8dac      8b4606         mov ax, word [arg_6h]
+│           1000:8daf      8846f7         mov byte [var_9h], al
+│           1000:8db2      3c25           cmp al, 0x25                 ; '%'
+│           1000:8db4      740a           je 0x8dc0
+│           1000:8db6      3c26           cmp al, 0x26                 ; '&'
+│           1000:8db8      7406           je 0x8dc0
+│           1000:8dba      c646f8cb       mov byte [var_8h], 0xcb      ; [0xcb:1]=18
+│           1000:8dbe      eb0c           jmp fcn.00008dcc
+            1000:8dc0      c646facb       mov byte [bp - 6], 0xcb      ; [0xcb:1]=18
+            1000:8dc4      c646f944       mov byte [bp - 7], 0x44      ; 'D'
+                                                                       ; [0x44:1]=104
+            1000:8dc8      c646f844       mov byte [bp - 8], 0x44      ; 'D'
+                                                                       ; [0x44:1]=104
+            1000:8dcc      8c56f4         mov word [bp - 0xc], ss
+            1000:8dcf      8d46f6         lea ax, [bp - 0xa]
+            1000:8dd2      8946f2         mov word [bp - 0xe], ax
+            1000:8dd5      1e             push ds
+            1000:8dd6      c57e08         lds di, [bp + 8]
+            1000:8dd9      8b05           mov ax, word [di]
+            1000:8ddb      8b5d02         mov bx, word [di + 2]
+            1000:8dde      8b4d04         mov cx, word [di + 4]
+            1000:8de1      8b5506         mov dx, word [di + 6]
+            1000:8de4      8b7508         mov si, word [di + 8]
+            1000:8de7      8b7d0a         mov di, word [di + 0xa]
+            1000:8dea      1f             pop ds
+            1000:8deb      55             push bp
+            1000:8dec      f8             clc
+            1000:8ded      ff5ef2         lcall [bp - 0xe]
+            1000:8df0      5d             pop bp
+            1000:8df1      fc             cld
+            1000:8df2      1e             push ds
+            1000:8df3      57             push di
+            1000:8df4      c57e0c         lds di, [bp + 0xc]
+            1000:8df7      8905           mov word [di], ax
+            1000:8df9      895d02         mov word [di + 2], bx
+            1000:8dfc      894d04         mov word [di + 4], cx
+            1000:8dff      895506         mov word [di + 6], dx
+            1000:8e02      897508         mov word [di + 8], si
+            1000:8e05      8f450a         pop word [di + 0xa]
+            1000:8e08      7204           jb 0x8e0e                    ; fcn.00008e06+0x8
+            1000:8e0a      33f6           xor si, si
+            1000:8e0c      eb0f           jmp 0x8e1d                   ; fcn.00008e06+0x17
+            1000:8e0e      59             pop cx
+            1000:8e0f      51             push cx
+            1000:8e10      1e             push ds
+            1000:8e11      8ed9           mov ds, cx
+            1000:8e13      0e             push cs
+            1000:8e14      e8cdb7         call fcn.000045e4            ; fcn.000043c8+0x21c
+            1000:8e17      1f             pop ds
+            1000:8e18      be0100         mov si, 1
+            1000:8e1b      8b05           mov ax, word [di]
+            1000:8e1d      89750c         mov word [di + 0xc], si
+            1000:8e20      1f             pop ds
+            1000:8e21      83c40a         add sp, 0xa
+            1000:8e24      5f             pop di
+            1000:8e25      5e             pop si
+            1000:8e26      8be5           mov sp, bp
+            1000:8e28      5d             pop bp
+            1000:8e29      cb             retf
 </code>
 </td></tr></table></div>
+
+Still no sign of an INT 10h, so what's going on? Examining the code further:
+```
+│           1000:8da8      c646f6cd       mov byte [var_ah], 0xcd      ; [0xcd:1]=131
+│           1000:8dac      8b4606         mov ax, word [arg_6h]
+│           1000:8daf      8846f7         mov byte [var_9h], al
+```
+The first thing it does is move 0xcd into a memory address, fetch a value from the stack, and pushes the lower portion into the following memory address. I think you can probably guess that at this point AL equals 0x10. A little bit further on it then saves 0xcb (retf) after that. It also creates a jmp address:
+```
+            1000:8dcc      8c56f4         mov word [bp - 0xc], ss
+            1000:8dcf      8d46f6         lea ax, [bp - 0xa]
+            1000:8dd2      8946f2         mov word [bp - 0xe], ax
+```
+Setups up any required registers:
+```
+            1000:8dd9      8b05           mov ax, word [di]
+            1000:8ddb      8b5d02         mov bx, word [di + 2]
+            1000:8dde      8b4d04         mov cx, word [di + 4]
+            1000:8de1      8b5506         mov dx, word [di + 6]
+            1000:8de4      8b7508         mov si, word [di + 8]
+            1000:8de7      8b7d0a         mov di, word [di + 0xa]
+```
+Then jumps to the newly created mini-function:
+```
+            1000:8ded      ff5ef2         lcall [bp - 0xe]
+```
+So all this is just a way to obfuscate INT calls, so having defined this function it can be seen that the previous one does in fact initialise the screen (among other things). This sets the tone for the analyse of the rest of this binary.
+
+Speaking of tone, in the function that calls initialise screen (which is the 2nd function):
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 40: fcn.000019b4 ();
+│           0000:19b4      6a56           push 0x56                    ; 'V'
+│           0000:19b6      66ff368401     push dword [0x184]
+│           0000:19bb      9a98096d0a     lcall fcn.0000b068           ; RELOC 16 
+│           0000:19c0      83c406         add sp, 6
+│           ; DATA XREF from fcn.000008f3 @ 0x12d5(r)
+│           0000:19c3      9a06006d0a     lcall fcn.0000a6d6           ; RELOC 16 
+│           0000:19c8      0bc0           or ax, ax
+│           0000:19ca      7405           je 0x19d1
+│           0000:19cc      800e8d0102     or byte [0x18d], 2
+│           ; CODE XREF from fcn.000019b4 @ 0x19ca(x)
+│           0000:19d1      6a07           push 7
+│           0000:19d3      9a6c0b6d0a     lcall fcn.0000b23c           ; RELOC 16 
+│           0000:19d8      83c402         add sp, 2
+└           0000:19db      cb             retf
+</code>
+</td></tr></table></div>
+
+The first one is worth analysing as well:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 278: fcn.0000b068 (int16_t arg_6h, int16_t arg_ah);
+│           ; arg int16_t arg_6h @ bp+0x6
+│           ; arg int16_t arg_ah @ bp+0xa
+│           ; var uint32_t var_2h @ bp-0x2
+│           ; var int16_t var_4h @ bp-0x4
+│           ; var int16_t var_6h @ bp-0x6
+│           0000:b068      c8060000       enter 6, 0
+│           0000:b06c      ff760a         push word [arg_ah]
+│           0000:b06f      688000         push 0x80
+│           0000:b072      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+│           0000:b077      83c404         add sp, 4
+│           0000:b07a      f6460608       test byte [arg_6h], 8
+│           0000:b07e      0f85fa00       jne 0xb17c
+│           0000:b082      ff760a         push word [arg_ah]
+│           0000:b085      688000         push 0x80
+│           0000:b088      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+│           0000:b08d      83c404         add sp, 4
+│           0000:b090      666a70         push 0x70                    ; 'p'
+│           0000:b093      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+│           0000:b098      83c404         add sp, 4
+│           0000:b09b      6a71           push 0x71                    ; 'q'
+│           0000:b09d      9aa65d1213     lcall fcn.00018ec6           ; RELOC 16 
+│           0000:b0a2      83c402         add sp, 2
+│           0000:b0a5      8846fe         mov byte [var_2h], al
+│           0000:b0a8      666870000200   push 0x20070                 ; 'p'
+│           0000:b0ae      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+│           0000:b0b3      83c404         add sp, 4
+│           ; DATA XREF from fcn.000043c8 @ 0x4707(r)
+│           ; DATA XREF from fcn.00014778 @ 0x4919(r)
+│           0000:b0b6      6a71           push 0x71                    ; 'q'
+│           0000:b0b8      9aa65d1213     lcall fcn.00018ec6           ; RELOC 16 
+│           0000:b0bd      83c402         add sp, 2
+│           0000:b0c0      8846fc         mov byte [var_4h], al
+│           0000:b0c3      666870000400   push 0x40070                 ; 'p'
+│           0000:b0c9      9ab45d1213     lcall fcn.00018ed4           ; RELOC 16 
+│           0000:b0ce      83c404         add sp, 4
+│           0000:b0d1      6a71           push 0x71                    ; 'q'
+│           0000:b0d3      9aa65d1213     lcall fcn.00018ec6           ; RELOC 16 
+│           0000:b0d8      83c402         add sp, 2
+│           ; CODE XREF from section.seg_012 @ +0xf69(x)
+│           0000:b0db      8846fa         mov byte [var_6h], al
+│           0000:b0de      66a18c01       mov eax, dword [0x18c]       ; [0x18c:4]=0x1312089e
+│           0000:b0e2      662500800010   and eax, 0x10008000
+│           0000:b0e8      660bc0         or eax, eax
+│           0000:b0eb      746f           je 0xb15c
+│           0000:b0ed      8a460a         mov al, byte [arg_ah]
+│           0000:b0f0      2ae4           sub ah, ah
+│           0000:b0f2      50             push ax
+│           0000:b0f3      8a46fe         mov al, byte [var_2h]
+│           0000:b0f6      250f00         and ax, 0xf
+│           0000:b0f9      053000         add ax, 0x30
+│           0000:b0fc      50             push ax
+│           0000:b0fd      8a46fe         mov al, byte [var_2h]
+│           0000:b100      c0e804         shr al, 4
+│           ; DATA XREF from fcn.000135d7 @ 0x135db(r)
+│           ; DATA XREF from fcn.000135d7 @ +0x3a(r)
+│           0000:b103      2ae4           sub ah, ah
+│           0000:b105      053000         add ax, 0x30
+│           0000:b108      50             push ax
+│           0000:b109      8a46fc         mov al, byte [var_4h]
+│           0000:b10c      250f00         and ax, 0xf
+│           0000:b10f      053000         add ax, 0x30
+│           0000:b112      50             push ax
+│           0000:b113      8a46fc         mov al, byte [var_4h]
+│           0000:b116      c0e804         shr al, 4
+│           0000:b119      2ae4           sub ah, ah
+│           0000:b11b      053000         add ax, 0x30
+│           0000:b11e      50             push ax
+│           0000:b11f      8a46fa         mov al, byte [var_6h]
+│           0000:b122      250f00         and ax, 0xf
+│           0000:b125      053000         add ax, 0x30
+│           0000:b128      50             push ax
+│           ; CODE XREF from section.seg_012 @ +0x21a4(x)
+│           0000:b129      8a46fa         mov al, byte [var_6h]
+│           0000:b12c      c0e804         shr al, 4
+│           0000:b12f      2ae4           sub ah, ah
+│           0000:b131      053000         add ax, 0x30                 ; int16_t arg_6h
+│           0000:b134      50             push ax
+│           0000:b135      1e             push ds
+│           0000:b136      68893c         push 0x3c89
+│           0000:b139      1e             push ds
+│           0000:b13a      68d25c         push 0x5cd2
+│           0000:b13d      9a96391213     lcall fcn.00016ab6           ; RELOC 16 
+│           0000:b142      83c416         add sp, 0x16
+│           0000:b145      1e             push ds
+│           0000:b146      68d25c         push 0x5cd2
+│           0000:b149      66681f001000   push 0x10001f                ; '\x1f'
+│           0000:b14f      666844001800   push 0x180044                ; 'D'
+│           0000:b155      0e             push cs
+│           0000:b156      e8c7fc         call fcn.0000ae20
+│           0000:b159      83c40c         add sp, 0xc
+│           ; CODE XREF from fcn.0000b068 @ 0xb0eb(x)
+│           0000:b15c      a0642c         mov al, byte [0x2c64]        ; [0x2c64:1]=199
+│           0000:b15f      3846fe         cmp byte [var_2h], al
+│           0000:b162      7418           je 0xb17c
+│           0000:b164      f6460610       test byte [arg_6h], 0x10
+│           0000:b168      750c           jne 0xb176
+│           0000:b16a      3cff           cmp al, 0xff
+│           0000:b16c      7408           je 0xb176
+│           0000:b16e      1e             push ds
+│           0000:b16f      68a23b         push 0x3ba2
+│           0000:b172      0e             push cs
+│           0000:b173      e8d603         call fcn.0000b54c
+│           ; CODE XREFS from fcn.0000b068 @ 0xb168(x), 0xb16c(x)
+│           0000:b176      8a46fe         mov al, byte [var_2h]
+│           0000:b179      a2642c         mov byte [0x2c64], al        ; [0x2c64:1]=199
+│           ; CODE XREFS from fcn.0000b068 @ 0xb07e(x), 0xb162(x)
+│           ; CODE XREFS from section.seg_012 @ +0x21e8(x), +0x21ef(x), +0x21f6(x)
+│           0000:b17c      c9             leave
+└           0000:b17d      cb             retf
+</code>
+</td></tr></table></div>
+
+The first two different function calls are obviously for:
+```
+┌ 14: fcn.00018ed4 (int16_t arg_6h, int16_t arg_8h);
+│           1000:8ed4      55             push bp
+│           1000:8ed5      8bec           mov bp, sp
+│           1000:8ed7      8b5606         mov dx, word [arg_6h]
+│           1000:8eda      8a4608         mov al, byte [arg_8h]
+│           1000:8edd      ee             out dx, al
+│           1000:8ede      b400           mov ah, 0
+│           1000:8ee0      5d             pop bp
+└           1000:8ee1      cb             retf
+```
+Writing to an I/O port.
+```
+┌ 13: fcn.00018ec6 (int16_t arg_6h);
+│           1000:8ec6      55             push bp
+│           1000:8ec7      8bec           mov bp, sp
+│           1000:8ec9      8b5606         mov dx, word [arg_6h]
+│           1000:8ecc      ec             in al, dx
+│           1000:8ecd      32e4           xor ah, ah
+│           1000:8ecf      8be5           mov sp, bp
+│           1000:8ed1      5d             pop bp
+└           1000:8ed2      cb             retf
+```
+Reading from an I/O port.
+
+
+
 
 ##ROM access code
 
