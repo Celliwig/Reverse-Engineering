@@ -24,6 +24,8 @@ Patch Flash Type Check: Change JZ to JMP
 f 27a6:71b1,71b2 eb 09
 Patch phlash ???? code: NOP the call that disables interrupts:
 f 27A6:7346,734a 90
+Patch phlash ???? code: NOP the call that disables interrupts:
+f 27A6:743d,7441 90
 Patch phlash pre-jump code: NOP the call that disables interrupts:
 f 27a6:812e,8132 90
 Patch external jump code: NOP loop in entry routine:
