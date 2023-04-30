@@ -1,5 +1,5 @@
 # Load C struct prototypes
-to ./wp-access-code/prototype_mcu2_data.h
+to ./wp-access-code/prototype_c_structs.h
 
 # ROM access entry hook
 afn fcn.romEntryHook[00000000] 0x0000 
@@ -31,3 +31,30 @@ af+ 0x0636 fcn.lpcInit[00000636]
 # MCU2 init data
 f+ data.mcu2InitData 0xc4 @ 0x0676
 tl mcu2_itable = 0x0676
+
+# Loads EBX with 0xfed1c000
+af+ 0x0eb4 fcn.ebx0xFED1C000[00000eb4]
+
+# MCU2 status check stopped?
+af+ 0x123e fcn.mcu2StatusChkStopped[0000123e]
+
+# (farcall) MCU2 status check stopped?
+af+ 0x1247 fcall.mcu2StatusChkStopped[00001247]
+
+# MCU2 status check run?
+af+ 0x124b fcn.mcu2StatusChkRun[0000124b]
+
+# (farcall) MCU2 status check run?
+af+ 0x1266 fcall.mcu2StatusChkRun[00001266]
+
+# MCU2 Erase Block
+af+ 0x126a fcn.mcu2EraseBlock[0000126a]
+
+# MCU2 Program Block
+af+ 0x12bb fcn.mcu2ProgramBlock[000012bb]
+
+# MCU2 get JEDEC ID
+af+ 0x134d fcn.mcu2JedecID[0000134d]
+
+# Loads EBX with 0xff800000
+af+ 0x139e fcn.ebx0xFF800000[0000139e]
