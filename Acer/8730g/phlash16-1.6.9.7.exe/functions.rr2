@@ -13,10 +13,15 @@ f romImageSizeLW 2 @ 0x94c8
 f romImageSizeHW 2 @ 0x94ca
 f picMasterCfgSave 2 @ 0xa020
 f picSlaveCfgSave 2 @ 0x9fe8
+f jmpstoreROMAccessFunctionOffset 4 @ 0x9ff2
 f romImageCopyPARTTBLLW 2 @ 0xa022
 f romImageCopyPARTTBLHW 2 @ 0xa024
 f addrFileBuffer 4 @ 0xa026
-f romFlash4kIndex 2 @ 0xb0b4
+f jumpROMCodeFunctionOffsetExitLW 2 @ 0xa08e
+f jumpROMCodeFunctionOffsetExitHW 2 @ 0xa090
+f jumpROMCodeFunctionOffsetEntryLW 2 @ 0xb0b0
+f jumpROMCodeFunctionOffsetEntryHW 2 @ 0xb0b2
+f romFlash64kIndex 2 @ 0xb0b4
 f romImageZFLPFTableLW 2 @ 0xbd3c
 f romImageZFLPFTableHW 2 @ 0xbd3e
 f romImageCopyZFLPFTableLW 2 @ 0xbd44
