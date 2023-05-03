@@ -10,20 +10,26 @@ af+ 0x00fc fcn.romExitHook[000000fc]
 # memoryTouch
 af+ 0x01c0 fcn.memoryTouch[000001c0]
 
+# System reset hook
+af+ 0x018e fcn.romSysRstHook[0000018e]
+
 # LPC ROM write enable
 af+ 0x019c fcn.lpcROMWriteEnable[0000019c]
 
 # ICH9 SMI config
 af+ 0x0258 fcn.ich9SMIConfig[00000258]
 
+# Some string table
+f+ data.tableROMType 0xb8 @ 0x028e
+
 # LPC ROM access
 af+ 0x0346 fcn.lpcROMAccess[00000346]
 
+# wpce775GetJedecID
+af+ 0x0467 fcn.wpce775GetJedecID[00000467]
+
 # LPC MCU2 init
 af+ 0x04d7 fcn.lpcMCU2Init[000004d7]
-
-# SuperIO ????
-af+ 0x0467 fcn.superIOAAAA[00000467]
 
 # LPC init
 af+ 0x0636 fcn.lpcInit[00000636]
@@ -32,8 +38,33 @@ af+ 0x0636 fcn.lpcInit[00000636]
 f+ data.mcu2InitData 0xc4 @ 0x0676
 tl mcu2_itable = 0x0676
 
+# SPI function to erase block
+af+ 0x09c1 fcn.spiEraseBlock[000009c1]
+
+# Call fcn.getBiosJedecID
+af+ 0x0cc8 call.getBiosJedecID[00000cc8]
+
+# Get JEDEC ID by Boot BIOS straps
+# Supports WPCE775 SuperIO and ICH SPI interface
+af+ 0x0ccc fcn.getBiosJedecID[00000ccc]
+
+# SPI function
+af+ 0x0e1f fcn.spi????????[00000e1f]
+
 # Loads EBX with 0xfed1c000
+# Offset of RCBA (Root Complex Base Address)
 af+ 0x0eb4 fcn.ebx0xFED1C000[00000eb4]
+
+
+
+# MCU2 Program blocks for device with 4k block size
+af+ 0x117b fcn.mcu2ProgramBlock4k[0000117b]
+
+# MCU2 Erase blocks for device with 64k block size
+af+ 0x11c1 fcn.mcu2EraseBlock64k[000011c1]
+
+# MCU2 Erase blocks for device with 4k block size
+af+ 0x11f1 fcn.mcu2EraseBlock4k[000011f1]
 
 # MCU2 status check stopped?
 af+ 0x123e fcn.mcu2StatusChkStopped[0000123e]
@@ -58,3 +89,12 @@ af+ 0x134d fcn.mcu2JedecID[0000134d]
 
 # Loads EBX with 0xff800000
 af+ 0x139e fcn.ebx0xFF800000[0000139e]
+
+# Call offset AX
+af+ 0x13b0 fcn.callAX[000013b0]
+
+# Check GCS register[RCBA + 0x3410] Boot BIOS Straps
+af+ 0x1400 fcn.checkBootBiosStraps[00001400]
+
+# Variable time delay
+af+ 0x14dc fcn.delayTimeVar[000014dc]
