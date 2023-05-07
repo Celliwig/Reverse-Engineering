@@ -38,15 +38,19 @@ af+ 0x0636 fcn.lpcInit[00000636]
 f+ data.mcu2InitData 0xc4 @ 0x0676
 tl mcu2_itable = 0x0676
 
+# Erase flash block
+# Supports WPCE775 SuperIO and ICH SPI interface
+af+ 0x09b2 fcn.flashEraseBlock[000009b2]
+
 # SPI function to erase block
 af+ 0x09c1 fcn.spiEraseBlock[000009c1]
 
 # Call fcn.getBiosJedecID
-af+ 0x0cc8 call.getBiosJedecID[00000cc8]
+af+ 0x0cc8 call.flashJedecID[00000cc8]
 
 # Get JEDEC ID by Boot BIOS straps
 # Supports WPCE775 SuperIO and ICH SPI interface
-af+ 0x0ccc fcn.getBiosJedecID[00000ccc]
+af+ 0x0ccc fcn.flashJedecID[00000ccc]
 
 # SPI function
 af+ 0x0e1f fcn.spi????????[00000e1f]
@@ -54,8 +58,6 @@ af+ 0x0e1f fcn.spi????????[00000e1f]
 # Loads EBX with 0xfed1c000
 # Offset of RCBA (Root Complex Base Address)
 af+ 0x0eb4 fcn.ebx0xFED1C000[00000eb4]
-
-
 
 # MCU2 Program blocks for device with 4k block size
 af+ 0x117b fcn.mcu2ProgramBlock4k[0000117b]
