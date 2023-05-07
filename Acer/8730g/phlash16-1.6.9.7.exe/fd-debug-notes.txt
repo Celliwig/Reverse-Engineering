@@ -43,4 +43,11 @@ Patch external jump code: NOP loop in exit routine:
 f 5366:0467,0468 90
 f 5366:0482,0483 90
 f 5366:0494,0495 90
-
+Patch external jump code: NOP loop in status check stopped routine:
+f 5366:158E,158F 90
+Patch external jump code: NOP loop in status check run routine:
+f 5366:159B,159C 90
+f 5366:15AD,15AE 90
+Patch external jump code: Set manufacture/model ID in getJedecID routine:
+f 5366:16C5,16C6 b1 c2
+f 5366:16CD,16CE b5 14
