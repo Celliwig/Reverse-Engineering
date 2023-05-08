@@ -208,7 +208,7 @@ Grant access:
 Erase sector:
 ==============
 	MCU2:
-		# Erase sector, start address: 0xAABBCCDD
+		# Erase sector, start (MMIO, ie FFE01000) address: 0xAABBCCDD
 		[0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
 		       0x80  --[8b]--> [0xff800003]
 		[0xff800004] --[8b]--> xxxxxxDD
@@ -222,7 +222,7 @@ Erase sector:
 Program bytes:
 ===============
 	MCU2:
-		# Program sector, start address: 0xAABBCCDD, data block to write (8 bytes): 0xMMNNOOPPQQRRSSTT
+		# Program sector, start (MMIO, ie FFE01000) address: 0xAABBCCDD, data block to write (8 bytes): 0xMMNNOOPPQQRRSSTT
 		Loop start (iterating over data to write into flash):
 			[0xff800000] --[8b]--> Loop until both bits 0 & 7 register AS 0
 			       0xa0  --[8b]--> [0xff800003]
