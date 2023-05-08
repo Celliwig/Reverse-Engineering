@@ -7,13 +7,21 @@ entry0:
 
 main:
 ======
-0000:0872	# TUI init
-0000:08e7	# Load Image File
-0000:08eb	# Interface check
-0000:0962	# Display device info
-0000:0a99	# Backup Sys ROM
-0000:0bf2	# ???
-0000:0e5b	# Flash Type Check
+27A6:0872	# TUI init
+27A6:08e7	# Load Image File
+27A6:08eb	# Interface check
+27A6:0962	# Display device info
+27A6:0a99	# Backup Sys ROM
+27A6:0bf2	# ???
+27A6:0e5b	# Flash Type Check
+
+
+3AB8:0553	# fcn.jmpROMCode
+
+External hook code:
+====================
+5366:034A	# fcn.romEntryHook (EDX=0000034A)
+5366:0446	# fcn.romExitHook (EDX=00000446)
 
 
 Patch image/code:
@@ -28,6 +36,8 @@ Patch phlash ???? code: NOP the call that disables interrupts:
 f 27A6:743d,7441 90
 Patch phlash pre-jump code: NOP the call that disables interrupts:
 f 27a6:812e,8132 90
+Patch phlash16 flash memory block, memory verify: Change JZ to JMP (+ NOP)
+f 30B7:121F,1222 e9 dd 01 90
 Patch external jump code: NOP loop in entry routine:
 f 5366:06bd,06be 90
 f 5366:0778,0779 90

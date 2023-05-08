@@ -129,6 +129,9 @@ afn fcn.tuiCheckFlashType[00007482] 0x00007482
 # jmpROMAccessDisableInt
 afn fcn.jmpROMAccessDisableInt[000072c6] 0x000072c6
 
+# tuiFlashMemoryBlk
+afn fcn.tuiFlashMemoryBlk[00007bfe] 0x00007bfe
+
 # picUpdateJumpROMExit
 afn fcn.picUpdateJumpROMExit[00008074] 0x00008074
 
