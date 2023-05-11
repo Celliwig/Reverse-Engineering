@@ -23,10 +23,10 @@ af+ 0x0258 fcn.ich9SMIConfig[00000258]
 f+ data.tableROMType 0xb8 @ 0x028e
 
 # LPC ROM access
-af+ 0x0346 fcn.lpcROMAccess[00000346]
+af+ 0x0346 fcn.mcu2ROMAccessInit[00000346]
 
-# wpce775GetJedecID
-af+ 0x0467 fcn.wpce775GetJedecID[00000467]
+# MCU2 JEDEC ID
+af+ 0x0467 fcn.mcu2JedecID[00000467]
 
 # LPC MCU2 init
 af+ 0x04d7 fcn.lpcMCU2Init[000004d7]

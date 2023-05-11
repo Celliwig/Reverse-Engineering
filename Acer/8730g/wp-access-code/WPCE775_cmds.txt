@@ -16,8 +16,8 @@ Offset 0x00:
 
 Offset 0x03: Command Register
 	0x1055aacdbe -> Flash Update Mode
-	0x22 -> Exit Mode
-	0x5a -> Enter Mode???
+	0x22 -> Exit Flash Update Mode
+	0x5a -> Access Mode???
 	0x80 -> Erase Sector
 	0xa0b8 -> Program Byte
 	0xc0 -> Get JEDEC ID
