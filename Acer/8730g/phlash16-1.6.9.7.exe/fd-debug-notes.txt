@@ -20,9 +20,15 @@ main:
 
 External hook code:
 ====================
+
+ZFLPF table (Platform Signature):
+----------------------------------
 5366:034A	# fcn.romEntryHook (EDX=0000034A)
 5366:0446	# fcn.romExitHook (EDX=00000446)
+5366:04D8	# fcn.romSysRstHook (EDX=000004D8)
 
+ZQDS table (DEV_DESC_TABLE):
+-----------------------------
 
 Patch image/code:
 ------------------
