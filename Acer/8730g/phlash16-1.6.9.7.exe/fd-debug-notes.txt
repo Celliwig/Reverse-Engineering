@@ -14,6 +14,7 @@ main:
 27A6:0a99	# Backup Sys ROM
 27A6:0bf2	# ???
 27A6:0e5b	# Flash Type Check
+27A6:12e0	# Flash Memory Block
 
 
 3AB8:0553	# fcn.jmpROMCode
@@ -27,8 +28,10 @@ ZFLPF table (Platform Signature):
 5366:0446	# fcn.romExitHook (EDX=00000446)
 5366:04D8	# fcn.romSysRstHook (EDX=000004D8)
 
-ZQDS table (DEV_DESC_TABLE):
------------------------------
+Extra functions
+----------------
+5366:153B	# fcn.mcu2EraseBlock4k (EDX=0000153B)
+5366:14C5	# fcn.mcu2ProgramBlock4k (EDX=000014C5)
 
 Patch image/code:
 ------------------

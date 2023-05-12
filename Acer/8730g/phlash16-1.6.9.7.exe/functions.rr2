@@ -6,6 +6,8 @@ f romImageAccessDataSize 4 @ 0x6340
 f romImageMMIOBaseTableLW 2 @ 0x6e86
 f romImageMMIOBaseTableHW 2 @ 0x6e88
 f crtControllerIOPort 2 @ 0x7346
+f jumpROMCodeFunctionOffsetResetLW 2 @ 0x7354
+f jumpROMCodeFunctionOffsetResetHW 2 @ 0x7356
 f jmpstoreROMAccess 4 @ 0x9362
 f jmpstoreROMAccessExternalLW 4 @ 0x9488
 f jmpstoreROMAccessExternalHW 4 @ 0x948a
@@ -14,6 +16,8 @@ f romImageSizeHW 2 @ 0x94ca
 f picMasterCfgSave 2 @ 0xa020
 f picSlaveCfgSave 2 @ 0x9fe8
 f jmpstoreROMAccessFunctionOffset 4 @ 0x9ff2
+f jumpROMCodeFunctionOffsetProgramLW 2 @ 0x9ff6
+f jumpROMCodeFunctionOffsetProgramHW 2 @ 0x9ff8
 f romImageCopyPARTTBLLW 2 @ 0xa022
 f romImageCopyPARTTBLHW 2 @ 0xa024
 f addrFileBuffer 4 @ 0xa026
@@ -24,6 +28,8 @@ f jumpROMCodeFunctionOffsetEntryHW 2 @ 0xb0b2
 f romFlash64kIndex 2 @ 0xb0b4
 f romImageZFLPFTableLW 2 @ 0xbd3c
 f romImageZFLPFTableHW 2 @ 0xbd3e
+f jumpROMCodeFunctionOffsetEraseLW 2 @ 0xbd40
+f jumpROMCodeFunctionOffsetEraseHW 2 @ 0xbd42
 f romImageCopyZFLPFTableLW 2 @ 0xbd44
 f romImageCopyZFLPFTableHW 2 @ 0xbd46
 
@@ -96,7 +102,11 @@ af- 0x0000426f
 af- 0x00004282
 af- 0x000042a4
 af- 0x000042aa
+
+# tuiInterfaceCheckIniFile
+afn fcn.tuiInterfaceCheckIniFile[000043c8] 0x000043c8
 af- 0x0000434a
+
 af- 0x00004ade
 af- 0x00004e26
 
@@ -137,6 +147,9 @@ afn fcn.picUpdateJumpROMExit[00008074] 0x00008074
 
 # picUpdateJumpROMEntry
 afn fcn.picUpdateJumpROMEntry[000080e6] 0x000080e6
+
+# flashMemoryBlk
+afn fcn.flashMemoryBlk[00009110] 0x00009110
 
 # tuiDisplayDevInfo
 afn fcn.tuiDisplayDevInfo[0000a5f0] 0x0000a5f0
