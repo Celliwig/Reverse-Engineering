@@ -1009,7 +1009,7 @@ There is another interesting snippet in this file worth mentioning:
 1= 0x00000000, 0x4000
 ```
 
-Hinted at in the meaguer documentation (basically sales pamphlet) found online for the WPCE775 suggests that it boots from the SPI ROM it's connected to, and so it's suggested that the first 16kB of SPI ROM is actually for the WPCE775. Examining the ROM image:
+Hinted at in the meaguer documentation (basically sales pamphlet) found online for the WPCE775 suggests that it boots from the SPI ROM it's connected to, and so it's possible that the first 16kB of SPI ROM is actually for the WPCE775. Examining the ROM image:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
        0     61 87 00 00 00 00 00 00  89 09 02 21 00 00 21 00      a..........!..!.
@@ -1152,7 +1152,7 @@ The final function:
 Is another bit of obfusciated code, it loops through the address range 0xffbf0002->0xffa00002 in 0x10000 decrements, writing whatever is in cl to that address. In this call cl=0, so it writes 0 to those memory addresses. It's called later in the revoke flash access function with cl=1, so is this a memory block access protection scheme?
 
 ####Revoke flash access
-The revoke access function is simple by comparison:
+The revoke access function is much simpler by comparison:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
 ┌ 0: fcn.romExitHook[000000fc] ();
@@ -1234,8 +1234,659 @@ Even simpler!
 </td></tr></table></div>
 I have to admit I was slightly confused when I first saw this one (not realising it's function). The fact that you have 'hlt' followed by an unconditional jump to that halt, followed by a 'ret'. But this is just 'guarding' against the processor accidentally executing code while it waits for the ICH to assert the reset signal.
 
-So is that all thats needed to write the ROM, not a chance. Keep reading. :grin:
+So that's all that's needed to read the ROM, what about writing? There are additional functions in the ROM image suffix, but the offset table for these functions has not been found. The offsets are identified and saved when the ROM image is loaded, but it's not immediately obvious how. The first stage happens inside this loop:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+95: fcn.00003eaf (int16_t arg2, int16_t arg3);
+│           ; arg int16_t arg2 @ dx
+│           ; arg int16_t arg3 @ bx
+│           ; var int16_t var_ch @ bp-0xc
+│           ; var uint32_t var_eh @ bp-0xe
+│           ; var int16_t var_20h @ bp-0x20
+│           ; var int16_t var_24h @ bp-0x24
+│           ; var int16_t var_2ch @ bp-0x2c
+│           ; var int16_t var_70h @ bp-0x70
+│           0000:3eaf     8b46f4         mov ax, word [var_ch]
+│           0000:3eb2     3946f2         cmp word [var_eh], ax
+│           0000:3eb5     732f           jae 0x3ee6
+│           0000:3eb7     8bd8           mov bx, ax                    ; arg1
+│           0000:3eb9     c1e303         shl bx, 3
+│           0000:3ebc     c436ea9f       les si, [0x9fea]
+│           0000:3ec0     66268b00       mov eax, dword es:[bx + si]
+│           0000:3ec4     40             inc ax
+│           0000:3ec5     6650           push eax
+│           0000:3ec7     8b5ef2         mov bx, word [var_eh]
+│           0000:3eca     c1e302         shl bx, 2
+│           0000:3ecd     c47690         les si, [var_70h]
+│           0000:3ed0     6626ff30       push dword es:[bx + si]
+│           0000:3ed4     9a68331213     lcall fcn.strCompareA[00016488]; RELOC 16 
+│           0000:3ed9     83c408         add sp, 8
+│           0000:3edc     0bc0           or ax, ax
+│           0000:3ede     75cc           jne 0x3eac
+│           0000:3ee0     8946f2         mov word [var_eh], ax
+│           0000:3ee3     eba7           jmp 0x3e8c
+            0000:3ee5     90             nop
+│           0000:3ee6     6a10           push 0x10
+│           0000:3ee8     9a915a1213     lcall fcn.callWeird[00018bb1] ; RELOC 16 
+│           0000:3eed     83c402         add sp, 2
+│           0000:3ef0     8b5ef4         mov bx, word [var_ch]
+│           0000:3ef3     c1e302         shl bx, 2
+│           0000:3ef6     c47690         les si, [var_70h]
+│           0000:3ef9     268900         mov word es:[bx + si], ax
+│           0000:3efc     26895002       mov word es:[bx + si + 2], dx
+│           0000:3f00     8b5ef4         mov bx, word [var_ch]
+│           0000:3f03     c1e303         shl bx, 3
+│           0000:3f06     c436ea9f       les si, [0x9fea]
+│           0000:3f0a     66268b00       mov eax, dword es:[bx + si]
+└           0000:3f0e     40             inc ax
+            0000:3f0f     6650           push eax
+            0000:3f11     8b5ef4         mov bx, word [bp - 0xc]
+            0000:3f14     c1e302         shl bx, 2
+            0000:3f17     c47690         les si, [bp - 0x70]
+            0000:3f1a     6626ff30       push dword es:[bx + si]
+            0000:3f1e     9a2c331213     lcall fcn.strCopy[0001644c]   ; RELOC 16 
+            0000:3f23     83c408         add sp, 8
+            0000:3f26     8b5ef4         mov bx, word [bp - 0xc]
+            0000:3f29     03db           add bx, bx
+            0000:3f2b     c476dc         les si, [bp - 0x24]
+            0000:3f2e     268b00         mov ax, word es:[bx + si]
+            0000:3f31     2bd2           sub dx, dx
+            0000:3f33     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:3f37     262b4707       sub ax, word es:[bx + 7]
+            0000:3f3b     1bd2           sbb dx, dx
+            0000:3f3d     8cc6           mov si, es
+            0000:3f3f     80e70f         and bh, 0xf
+            0000:3f42     03db           add bx, bx
+            0000:3f44     13f6           adc si, si
+            0000:3f46     13db           adc bx, bx
+            0000:3f48     13f6           adc si, si
+            0000:3f4a     13db           adc bx, bx
+            0000:3f4c     13f6           adc si, si
+            0000:3f4e     13db           adc bx, bx
+            0000:3f50     13f6           adc si, si
+            0000:3f52     13db           adc bx, bx
+            0000:3f54     87de           xchg si, bx
+            0000:3f56     83e60f         and si, 0xf
+            0000:3f59     03c3           add ax, bx
+            0000:3f5b     13d6           adc dx, si
+            0000:3f5d     030622a0       add ax, word [romImageCopyPARTTBLLW]
+            0000:3f61     83d200         adc dx, 0
+            0000:3f64     8b76f4         mov si, word [bp - 0xc]
+            0000:3f67     c1e603         shl si, 3
+            0000:3f6a     c41eea9f       les bx, [0x9fea]
+            0000:3f6e     26894004       mov word es:[bx + si + 4], ax
+            0000:3f72     26895006       mov word es:[bx + si + 6], dx
+            0000:3f76     8b76f4         mov si, word [bp - 0xc]
+            0000:3f79     c1e603         shl si, 3
+            0000:3f7c     c41eea9f       les bx, [0x9fea]
+            0000:3f80     268b4006       mov ax, word es:[bx + si + 6]
+            0000:3f84     c1e00c         shl ax, 0xc
+            0000:3f87     8b76f4         mov si, word [bp - 0xc]
+            0000:3f8a     c1e603         shl si, 3
+            0000:3f8d     268b4804       mov cx, word es:[bx + si + 4]
+            0000:3f91     8b76f4         mov si, word [bp - 0xc]
+            0000:3f94     c1e603         shl si, 3
+            0000:3f97     26894804       mov word es:[bx + si + 4], cx
+            0000:3f9b     26894006       mov word es:[bx + si + 6], ax
+            0000:3f9f     8b76f4         mov si, word [bp - 0xc]
+            0000:3fa2     c1e603         shl si, 3
+            0000:3fa5     c41eea9f       les bx, [0x9fea]
+            0000:3fa9     26c45804       les bx, es:[bx + si + 4]
+            0000:3fad     26833f18       cmp word es:[bx], 0x18
+            0000:3fb1     740c           je 0x3fbf
+            0000:3fb3     666a00         push 0
+            0000:3fb6     6aca           push 0xffffffffffffffca
+            0000:3fb8     0e             push cs
+            0000:3fb9     e884d6         call fcn.displayTuiError[00001640]
+            0000:3fbc     83c406         add sp, 6
+            0000:3fbf     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:3fc3     8b76f4         mov si, word [bp - 0xc]
+            0000:3fc6     268b4707       mov ax, word es:[bx + 7]
+            0000:3fca     c1e603         shl si, 3
+            0000:3fcd     c41eea9f       les bx, [0x9fea]
+            0000:3fd1     26c45804       les bx, es:[bx + si + 4]
+            0000:3fd5     26294714       sub word es:[bx + 0x14], ax
+            0000:3fd9     a16a06         mov ax, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:3fdc     8b166c06       mov dx, word [0x66c]          ; [0x66c:2]=0x6e83
+            0000:3fe0     03c0           add ax, ax
+            0000:3fe2     13d2           adc dx, dx
+            0000:3fe4     13c0           adc ax, ax
+            0000:3fe6     13d2           adc dx, dx
+            0000:3fe8     13c0           adc ax, ax
+            0000:3fea     13d2           adc dx, dx
+            0000:3fec     13c0           adc ax, ax
+            0000:3fee     13d2           adc dx, dx
+            0000:3ff0     13c0           adc ax, ax
+            0000:3ff2     92             xchg ax, dx
+            0000:3ff3 ~   24f0           and al, 0xf0
+            0000:3ff5     8b1622a0       mov dx, word [romImageCopyPARTTBLLW]
+            0000:3ff9     8b1e24a0       mov bx, word [romImageCopyPARTTBLHW]
+            0000:3ffd     03d2           add dx, dx
+            0000:3fff     13db           adc bx, bx
+            0000:4001     13d2           adc dx, dx
+            0000:4003     13db           adc bx, bx
+            0000:4005     13d2           adc dx, dx
+            0000:4007     13db           adc bx, bx
+            0000:4009     13d2           adc dx, dx
+            0000:400b     13db           adc bx, bx
+            0000:400d     13d2           adc dx, dx
+            0000:400f     87d3           xchg bx, dx
+            0000:4011     80e2f0         and dl, 0xf0
+            0000:4014     2bd0           sub dx, ax
+            0000:4016     2b166a06       sub dx, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:401a     031622a0       add dx, word [romImageCopyPARTTBLLW]
+            0000:401e     8b76f4         mov si, word [bp - 0xc]
+            0000:4021     c1e603         shl si, 3
+            0000:4024     c41eea9f       les bx, [0x9fea]
+            0000:4028     26c45804       les bx, es:[bx + si + 4]
+            0000:402c     26015714       add word es:[bx + 0x14], dx
+            0000:4030     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:4034     8b76f4         mov si, word [bp - 0xc]
+            0000:4037     268b4707       mov ax, word es:[bx + 7]
+            0000:403b     c1e603         shl si, 3
+            0000:403e     c41eea9f       les bx, [0x9fea]
+            0000:4042     26c45804       les bx, es:[bx + si + 4]
+            0000:4046     2629470c       sub word es:[bx + 0xc], ax
+            0000:404a     a16a06         mov ax, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:404d     8b166c06       mov dx, word [0x66c]          ; [0x66c:2]=0x6e83
+            0000:4051     03c0           add ax, ax
+            0000:4053     13d2           adc dx, dx
+            0000:4055     13c0           adc ax, ax
+            0000:4057     13d2           adc dx, dx
+            0000:4059     13c0           adc ax, ax
+            0000:405b     13d2           adc dx, dx
+            0000:405d     13c0           adc ax, ax
+            0000:405f     13d2           adc dx, dx
+            0000:4061     13c0           adc ax, ax
+            0000:4063     92             xchg ax, dx
+            0000:4064     24f0           and al, 0xf0
+            0000:4066     8b1622a0       mov dx, word [romImageCopyPARTTBLLW]
+            0000:406a     8b1e24a0       mov bx, word [romImageCopyPARTTBLHW]
+            0000:406e     03d2           add dx, dx
+            0000:4070     13db           adc bx, bx
+            0000:4072     13d2           adc dx, dx
+            0000:4074     13db           adc bx, bx
+            0000:4076     13d2           adc dx, dx
+            0000:4078     13db           adc bx, bx
+            0000:407a     13d2           adc dx, dx
+            0000:407c     13db           adc bx, bx
+            0000:407e     13d2           adc dx, dx
+            0000:4080     87d3           xchg bx, dx
+            0000:4082     80e2f0         and dl, 0xf0
+            0000:4085     2bd0           sub dx, ax
+            0000:4087     2b166a06       sub dx, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:408b     031622a0       add dx, word [romImageCopyPARTTBLLW]
+            0000:408f     8b76f4         mov si, word [bp - 0xc]
+            0000:4092     c1e603         shl si, 3
+            0000:4095     c41eea9f       les bx, [0x9fea]
+            0000:4099     26c45804       les bx, es:[bx + si + 4]
+            0000:409d     2601570c       add word es:[bx + 0xc], dx
+            0000:40a1     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:40a5     8b76f4         mov si, word [bp - 0xc]
+            0000:40a8     268b4707       mov ax, word es:[bx + 7]
+            0000:40ac     c1e603         shl si, 3
+            0000:40af     c41eea9f       les bx, [0x9fea]
+            0000:40b3     26c45804       les bx, es:[bx + si + 4]
+            0000:40b7     26294708       sub word es:[bx + 8], ax
+            0000:40bb     a16a06         mov ax, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:40be     8b166c06       mov dx, word [0x66c]          ; [0x66c:2]=0x6e83
+            0000:40c2     03c0           add ax, ax
+            0000:40c4     13d2           adc dx, dx
+            0000:40c6     13c0           adc ax, ax
+            0000:40c8     13d2           adc dx, dx
+            0000:40ca     13c0           adc ax, ax
+            0000:40cc     13d2           adc dx, dx
+            0000:40ce     13c0           adc ax, ax
+            0000:40d0     13d2           adc dx, dx
+            0000:40d2     13c0           adc ax, ax
+            0000:40d4     92             xchg ax, dx
+            0000:40d5     24f0           and al, 0xf0
+            0000:40d7     8b1622a0       mov dx, word [romImageCopyPARTTBLLW]
+            0000:40db     8b1e24a0       mov bx, word [romImageCopyPARTTBLHW]
+            0000:40df     03d2           add dx, dx
+            0000:40e1     13db           adc bx, bx
+            0000:40e3     13d2           adc dx, dx
+            0000:40e5     13db           adc bx, bx
+            0000:40e7     13d2           adc dx, dx
+            0000:40e9     13db           adc bx, bx
+            0000:40eb     13d2           adc dx, dx
+            0000:40ed     13db           adc bx, bx
+            0000:40ef     13d2           adc dx, dx
+            0000:40f1     87d3           xchg bx, dx
+            0000:40f3     80e2f0         and dl, 0xf0
+            0000:40f6     2bd0           sub dx, ax
+            0000:40f8     2b166a06       sub dx, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:40fc     031622a0       add dx, word [romImageCopyPARTTBLLW]
+            0000:4100     8b76f4         mov si, word [bp - 0xc]
+            0000:4103     c1e603         shl si, 3
+            0000:4106     c41eea9f       les bx, [0x9fea]
+            0000:410a     26c45804       les bx, es:[bx + si + 4]
+            0000:410e     26015708       add word es:[bx + 8], dx
+            0000:4112     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:4116     8b76f4         mov si, word [bp - 0xc]
+            0000:4119     268b4707       mov ax, word es:[bx + 7]
+            0000:411d     c1e603         shl si, 3
+            0000:4120     c41eea9f       les bx, [0x9fea]
+            0000:4124     26c45804       les bx, es:[bx + si + 4]
+            0000:4128     26294710       sub word es:[bx + 0x10], ax
+            0000:412c     a16a06         mov ax, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:412f     8b166c06       mov dx, word [0x66c]          ; [0x66c:2]=0x6e83
+            0000:4133     03c0           add ax, ax
+            0000:4135     13d2           adc dx, dx
+            0000:4137     13c0           adc ax, ax
+            0000:4139     13d2           adc dx, dx
+            0000:413b     13c0           adc ax, ax
+            0000:413d     13d2           adc dx, dx
+            0000:413f ~   13c0           adc ax, ax
+│           0000:4140     c013d2         rcl byte [bp + di], 0xd2
+            0000:4143     13c0           adc ax, ax
+            0000:4145     92             xchg ax, dx
+            0000:4146     24f0           and al, 0xf0
+            0000:4148     8b1622a0       mov dx, word [romImageCopyPARTTBLLW]
+            0000:414c ~   8b1e24a0       mov bx, word [romImageCopyPARTTBLHW]
+│           0000:414e     24a0           and al, 0xa0
+            0000:4150     03d2           add dx, dx
+            0000:4152     13db           adc bx, bx
+            0000:4154     13d2           adc dx, dx
+            0000:4156     13db           adc bx, bx
+            0000:4158     13d2           adc dx, dx
+            0000:415a     13db           adc bx, bx
+            0000:415c     13d2           adc dx, dx
+            0000:415e     13db           adc bx, bx
+            0000:4160     13d2           adc dx, dx
+            0000:4162     87d3           xchg bx, dx
+            0000:4164     80e2f0         and dl, 0xf0
+            0000:4167     2bd0           sub dx, ax
+            0000:4169     2b166a06       sub dx, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:416d     031622a0       add dx, word [romImageCopyPARTTBLLW]
+            0000:4171     8b76f4         mov si, word [bp - 0xc]
+            0000:4174     c1e603         shl si, 3
+            0000:4177     c41eea9f       les bx, [0x9fea]
+            0000:417b     26c45804       les bx, es:[bx + si + 4]
+            0000:417f     26015710       add word es:[bx + 0x10], dx
+            0000:4183     8b76f4         mov si, word [bp - 0xc]
+            0000:4186     c1e603         shl si, 3
+            0000:4189     c41eea9f       les bx, [0x9fea]
+            0000:418d     66268b4004     mov eax, dword es:[bx + si + 4]
+            0000:4192     66a3f694       mov dword [0x94f6], eax       ; [0x94f6:4]=0x66dc4689
+            0000:4196     833e5a0100     cmp word [0x15a], 0           ; [0x15a:2]=0x5200
+            0000:419b     0f848300       je 0x4222
+            0000:419f     c41ef694       les bx, [0x94f6]
+            0000:41a3     26807f18fe     cmp byte es:[bx + 0x18], 0xfe
+            0000:41a8     7578           jne 0x4222
+            0000:41aa     26807f28fd     cmp byte es:[bx + 0x28], 0xfd
+            0000:41af     7571           jne 0x4222
+            0000:41b1     c41e22a0       les bx, [romImageCopyPARTTBLLW]
+            0000:41b5     8b76f4         mov si, word [bp - 0xc]
+            0000:41b8     268b4707       mov ax, word es:[bx + 7]
+            0000:41bc     c1e603         shl si, 3
+            0000:41bf     c41eea9f       les bx, [0x9fea]
+            0000:41c3     26c45804       les bx, es:[bx + si + 4]
+            0000:41c7     2629472a       sub word es:[bx + 0x2a], ax
+            0000:41cb     a16a06         mov ax, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:41ce     8b166c06       mov dx, word [0x66c]          ; [0x66c:2]=0x6e83
+            0000:41d2     03c0           add ax, ax
+            0000:41d4     13d2           adc dx, dx
+            0000:41d6     13c0           adc ax, ax
+            0000:41d8     13d2           adc dx, dx
+            0000:41da     13c0           adc ax, ax
+            0000:41dc     13d2           adc dx, dx
+            0000:41de     13c0           adc ax, ax
+            0000:41e0     13d2           adc dx, dx
+            0000:41e2     13c0           adc ax, ax
+            0000:41e4     92             xchg ax, dx
+            0000:41e5     24f0           and al, 0xf0
+            0000:41e7     8b1622a0       mov dx, word [romImageCopyPARTTBLLW]
+            0000:41eb     8b1e24a0       mov bx, word [romImageCopyPARTTBLHW]
+            0000:41ef     03d2           add dx, dx
+            0000:41f1     13db           adc bx, bx
+            0000:41f3     13d2           adc dx, dx
+            0000:41f5     13db           adc bx, bx
+            0000:41f7     13d2           adc dx, dx
+            0000:41f9     13db           adc bx, bx
+            0000:41fb     13d2           adc dx, dx
+            0000:41fd     13db           adc bx, bx
+            0000:41ff     13d2           adc dx, dx
+            0000:4201     87d3           xchg bx, dx
+            0000:4203     80e2f0         and dl, 0xf0
+            0000:4206     2bd0           sub dx, ax
+            0000:4208     2b166a06       sub dx, word [0x66a]          ; [0x66a:2]=0x6601
+            0000:420c     031622a0       add dx, word [romImageCopyPARTTBLLW]
+            0000:4210     8b76f4         mov si, word [bp - 0xc]
+            0000:4213     c1e603         shl si, 3
+            0000:4216     c41eea9f       les bx, [0x9fea]
+            0000:421a     26c45804       les bx, es:[bx + si + 4]
+            0000:421e     2601572a       add word es:[bx + 0x2a], dx
+            0000:4222     ff46f4         inc word [bp - 0xc]
+            0000:4225     a06693         mov al, byte [0x9366]         ; [0x9366:1]=62
+            0000:4228     2ae4           sub ah, ah
+            0000:422a     3b46f4         cmp ax, word [bp - 0xc]
+            0000:422d     0f869b00       jbe 0x42cc
+            0000:4231     8b5ef4         mov bx, word [bp - 0xc]
+            0000:4234     03db           add bx, bx
+            0000:4236     c476e0         les si, [bp - 0x20]
+            0000:4239     268b00         mov ax, word es:[bx + si]
+            0000:423c     2bd2           sub dx, dx
+            0000:423e     c45ed4         les bx, [bp - 0x2c]
+            0000:4241     262b4704       sub ax, word es:[bx + 4]
+            0000:4245     1bd2           sbb dx, dx
+            0000:4247     8cc6           mov si, es
+            0000:4249     80e70f         and bh, 0xf
+            0000:424c     03db           add bx, bx
+            0000:424e     13f6           adc si, si
+            0000:4250     13db           adc bx, bx
+            0000:4252     13f6           adc si, si
+            0000:4254     13db           adc bx, bx
+            0000:4256     13f6           adc si, si
+            0000:4258     13db           adc bx, bx
+            0000:425a     13f6           adc si, si
+            0000:425c     13db           adc bx, bx
+            0000:425e     87de           xchg si, bx
+            0000:4260     83e60f         and si, 0xf
+            0000:4263     03c3           add ax, bx
+            0000:4265     13d6           adc dx, si
+            0000:4267     0346d4         add ax, word [bp - 0x2c]
+            0000:426a     83d200         adc dx, 0
+            0000:426d     8b5ef4         mov bx, word [bp - 0xc]
+            0000:4270     c1e303         shl bx, 3
+            0000:4273     c436ea9f       les si, [0x9fea]
+            0000:4277     268900         mov word es:[bx + si], ax
+            0000:427a     26895002       mov word es:[bx + si + 2], dx
+            0000:427e     8b5ef4         mov bx, word [bp - 0xc]
+            0000:4281     c1e303         shl bx, 3
+            0000:4284     c436ea9f       les si, [0x9fea]
+            0000:4288     268b4002       mov ax, word es:[bx + si + 2]
+            0000:428c     c1e00c         shl ax, 0xc
+            0000:428f     8b5ef4         mov bx, word [bp - 0xc]
+            0000:4292     c1e303         shl bx, 3
+            0000:4295     268b08         mov cx, word es:[bx + si]
+│           0000:4298     8b5ef4         mov bx, word [var_ch]
+│           0000:429b     c1e303         shl bx, 3
+│           0000:429e     268908         mov word es:[bx + si], cx
+│           0000:42a1     26894002       mov word es:[bx + si + 2], ax
+│           0000:42a5     8b5ef4         mov bx, word [var_ch]
+│           0000:42a8     c1e303         shl bx, 3
+│           0000:42ab     c436ea9f       les si, [0x9fea]
+│           0000:42af     26c418         les bx, es:[bx + si]
+│           0000:42b2     26803f41       cmp byte es:[bx], 0x41        ; 'A'
+│           0000:42b6     740c           je 0x42c4
+            0000:42b8     666a00         push 0
+            0000:42bb     6acb           push 0xffffffffffffffcb
+            0000:42bd     0e             push cs
+            0000:42be     e87fd3         call fcn.displayTuiError[00001640]
+            0000:42c1     83c406         add sp, 6
+            0000:42c4     c746f20000     mov word [bp - 0xe], 0
+            0000:42c9     e9e3fb         jmp fcn.00003eaf
+</code>
+</td></tr></table></div>
 
+And involves this function:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 106: fcn.callWeird[00018bb1] (int16_t arg1, int16_t arg2, int16_t arg3, int16_t arg_6h);
+│           ; arg int16_t arg1 @ ax
+│           ; arg int16_t arg2 @ dx
+│           ; arg int16_t arg3 @ bx
+│           ; arg int16_t arg_6h @ bp+0x6
+│           ; var int16_t var_1ah @ bp-0x1a
+│           ; var int16_t var_1ch @ bp-0x1c
+│           ; var int16_t var_e8h @ bp-0xe8
+│           ; var int16_t var_eah @ bp-0xea
+│           ; var int16_t var_eeh @ bp-0xee
+│           ; var int16_t var_f0h @ bp-0xf0
+│           ; var int16_t var_f2h @ bp-0xf2
+│           ; var int16_t var_f4h @ bp-0xf4
+│           ; var int16_t var_f6h @ bp-0xf6
+│           ; var int16_t var_f8h @ bp-0xf8
+│           ; var int16_t var_fah @ bp-0xfa
+│           ; var int16_t var_fch @ bp-0xfc
+│           ; var int16_t var_100h @ bp-0x100
+│           ; var int16_t var_102h @ bp-0x102
+│           ; var int16_t var_104h @ bp-0x104
+│           ; var int16_t var_106h @ bp-0x106
+│           ; var int16_t var_108h @ bp-0x108
+│           ; var int16_t var_10ah @ bp-0x10a
+│           ; var int16_t var_10ch @ bp-0x10c
+│           ; var int16_t var_15ch @ bp-0x15c
+│           ; var int16_t var_16ch @ bp-0x16c
+│           ; var int16_t var_17ch @ bp-0x17c
+│           1000:8bb1     55             push bp
+│           1000:8bb2     8bec           mov bp, sp
+│           1000:8bb4     56             push si
+│           1000:8bb5     57             push di
+│           1000:8bb6     8b4e06         mov cx, word [arg_6h]
+│           1000:8bb9     83f9e8         cmp cx, 0xffe8
+│           1000:8bbc     7769           ja 0x8c27
+│           1000:8bbe     1e             push ds
+│           1000:8bbf     a1025a         mov ax, word [0x5a02]         ; [0x5a02:2]=0x9a50
+│           1000:8bc2     0bc0           or ax, ax
+│           1000:8bc4     7448           je 0x8c0e
+│           1000:8bc6     bf945b         mov di, 0x5b94
+│           1000:8bc9     8b360a5a       mov si, word [0x5a0a]         ; [0x5a0a:2]=0xc60a
+│           1000:8bcd     c51e045a       lds bx, [0x5a04]
+│           1000:8bd1     1e             push ds
+│           1000:8bd2     56             push si
+│           1000:8bd3     57             push di
+│           1000:8bd4     ffd7           call di
+│           1000:8bd6     5f             pop di
+│           1000:8bd7     5e             pop si
+│           1000:8bd8     732b           jae 0x8c05
+│           1000:8bda     8cda           mov dx, ds
+│           1000:8bdc     c55f0c         lds bx, [bx + 0xc]
+│           1000:8bdf     3bd6           cmp dx, si
+│           1000:8be1     75ef           jne 0x8bd2
+│           1000:8be3     58             pop ax
+│           1000:8be4     1f             pop ds
+│           1000:8be5     1e             push ds
+│           1000:8be6     c436045a       les si, [0x5a04]
+│           1000:8bea     268b7412       mov si, word es:[si + 0x12]
+│           1000:8bee     c51e005a       lds bx, [0x5a00]
+│           1000:8bf2     8cda           mov dx, ds
+│           1000:8bf4     3bd0           cmp dx, ax
+│           1000:8bf6     75d9           jne 0x8bd1                    ; fcn.00008bc9+0x8
+│           1000:8bf8     1f             pop ds
+│           1000:8bf9     1e             push ds
+│           1000:8bfa     81ffd831       cmp di, 0x31d8
+│           1000:8bfe     740e           je 0x8c0e
+│           1000:8c00     bfd831         mov di, 0x31d8
+│           1000:8c03     ebc4           jmp fcn.00008bc9
+            1000:8c05     5e             pop si
+            1000:8c06     81ff945b       cmp di, 0x5b94
+            1000:8c0a     740f           je 0x8c1b                     ; fcn.00008bc9+0x52
+            1000:8c0c     eb0a           jmp 0x8c18                    ; fcn.00008bc9+0x4f
+            1000:8c0e     07             pop es
+            1000:8c0f     06             push es
+            1000:8c10     bf005a         mov di, 0x5a00
+            1000:8c13     e81a01         call fcn.00008d30
+            1000:8c16     720e           jb 0x8c26                     ; fcn.00008bc9+0x5d
+            1000:8c18     e89900         call fcn.00008cb4
+            1000:8c1b     1f             pop ds
+            1000:8c1c     8916065a       mov word [0x5a06], dx         ; [0x5a06:2]=0x1312
+            1000:8c20     891e045a       mov word [0x5a04], bx         ; [0x5a04:2]=0x3d9a
+            1000:8c24     eb20           jmp 0x8c46                    ; fcn.00008bc9+0x7d
+            1000:8c26     1f             pop ds
+            1000:8c27     33c0           xor ax, ax
+            1000:8c29     99             cdq
+            1000:8c2a     8b0efe59       mov cx, word [0x59fe]         ; [0x59fe:2]=0x468d
+            1000:8c2e     0b0efc59       or cx, word [0x59fc]          ; [0x59fc:2]=0xbbca
+            1000:8c32     7412           je 0x8c46                     ; fcn.00008bc9+0x7d
+            1000:8c34     ff7606         push word [bp + 6]
+            1000:8c37     ff1efc59       lcall [0x59fc]
+            1000:8c3b     83c402         add sp, 2
+            1000:8c3e     99             cdq
+            1000:8c3f     0bc0           or ax, ax
+            1000:8c41     7403           je 0x8c46                     ; fcn.00008bc9+0x7d
+            1000:8c43     e970ff         jmp 0x8bb6                    ; fcn.00018b9e-0xffe8
+            1000:8c46     5f             pop di
+            1000:8c47     5e             pop si
+            1000:8c48     5d             pop bp
+            1000:8c49     cb             retf
+</code>
+</td></tr></table></div>
+I tried tracing 160 iterations of the loop, but without joy. It's not important, so I decided to ignore the problem for now.
+
+There are two missing functions, erase sector and program (sector), and the required functions can be identifed simply by executing phlash and trying to flash the ROM image.
+
+####Erase Sector
+When reflashing a ROM, the sectors to be programmed first have to be erased. Tracing the ROM flashing routine, phlash jumps to external code with this function:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 0: fcn.mcu2EraseBlock4k[000011f1] ();
+            0000:11f1     6651           push ecx
+            0000:11f3     6653           push ebx
+            0000:11f5     6657           push edi
+            0000:11f7     6652           push edx
+            0000:11f9     6683f900       cmp ecx, 0
+            0000:11fd     741e           je 0x121d
+            0000:11ff     6681c1ff0f00.  add ecx, 0xfff
+            0000:1206     66c1e90c       shr ecx, 0xc
+            0000:120a     e85d00         call fcn.mcu2EraseBlock[0000126a]
+            0000:120d     b4dd           mov ah, 0xdd
+            0000:120f     720c           jb 0x121d
+            0000:1211     6681c7001000.  add edi, 0x1000
+            0000:1218     e2f0           loop 0x120a
+            0000:121a     6633c0         xor eax, eax
+            0000:121d     665a           pop edx
+            0000:121f     665f           pop edi
+            0000:1221     665b           pop ebx
+            0000:1223     6659           pop ecx
+            0000:1225     c3             ret
+</code>
+</td></tr></table></div>
+You can probably guess that EDI is the start sector address, while ECX contains the end address, so this just loops over a number of sectors calling:
+
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 0: fcn.mcu2EraseBlock[0000126a] ();
+            0000:126a     50             push ax
+            0000:126b     6653           push ebx
+            0000:126d     6652           push edx
+            0000:126f     e82c01         call fcn.ebx0xFF800000[0000139e]
+            0000:1272     e8c9ff         call fcn.mcu2StatusChkStopped[0000123e]
+            0000:1275     668bd3         mov edx, ebx
+            0000:1278     6683c303       add ebx, 3
+            0000:127c     b080           mov al, 0x80
+            0000:127e     67268803       mov byte es:[ebx], al
+            0000:1282     668bc7         mov eax, edi
+            0000:1285     6643           inc ebx
+            0000:1287     67268803       mov byte es:[ebx], al
+            0000:128b     6643           inc ebx
+            0000:128d     66c1e808       shr eax, 8
+            0000:1291     67268803       mov byte es:[ebx], al
+            0000:1295     6643           inc ebx
+            0000:1297     66c1e808       shr eax, 8
+            0000:129b     67268803       mov byte es:[ebx], al
+            0000:129f     6643           inc ebx
+            0000:12a1     66c1e808       shr eax, 8
+            0000:12a5     67268803       mov byte es:[ebx], al
+            0000:12a9     668bda         mov ebx, edx
+            0000:12ac     b001           mov al, 1
+            0000:12ae     67268803       mov byte es:[ebx], al
+            0000:12b2     e896ff         call fcn.mcu2StatusChkRun[0000124b]
+            0000:12b5     665a           pop edx
+            0000:12b7     665b           pop ebx
+            0000:12b9     58             pop ax
+            0000:12ba     c3             ret
+</code>
+</td></tr></table></div>
+The function names I've left in should be fairly self explanitory, so I won't bother listing those functions. This function follows the pattern of previous MCU2 MMIO commands, except this time it executes command '0x80' and loads the sector address in as an arguement. So sector erase, simple enough.
+
+####Program Flash
+Finally, having erased a sector, the new data needs to be programmed into it and so this is called:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 0: fcn.mcu2ProgramBlock4k[0000117b] ();
+            0000:117b     6656           push esi
+            0000:117d     6657           push edi
+            0000:117f     6653           push ebx
+            0000:1181     6652           push edx
+            0000:1183     6651           push ecx
+            0000:1185     6681c1ff0f00.  add ecx, 0xfff
+            0000:118c     66c1e90c       shr ecx, 0xc
+            0000:1190     668bd1         mov edx, ecx
+            0000:1193     66b900100000   mov ecx, 0x1000
+            0000:1199     e81f01         call fcn.mcu2ProgramBlock[000012bb]
+            0000:119c     b4de           mov ah, 0xde
+            0000:119e     7216           jb 0x11b6
+            0000:11a0     6681c7001000.  add edi, 0x1000
+            0000:11a7     6681c6001000.  add esi, 0x1000
+            0000:11ae     668bca         mov ecx, edx
+            0000:11b1     e2dd           loop 0x1190
+            0000:11b3     6633c0         xor eax, eax
+            0000:11b6     6659           pop ecx
+            0000:11b8     665a           pop edx
+            0000:11ba     665b           pop ebx
+            0000:11bc     665f           pop edi
+            0000:11be     665e           pop esi
+            0000:11c0     c3             ret
+</code>
+</td></tr></table></div>
+Similar to before, ESI is the source address of data to write, EDI is the destination MMIO address in the ROM, and once again ECX is the end address. So this iteratively calls a function, incrementing the passed address space by 4k each time:
+
+And so we come to:
+<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
+<code>
+┌ 0: fcn.mcu2ProgramBlock[000012bb] ();
+            0000:12bb     50             push ax
+            0000:12bc     6653           push ebx
+            0000:12be     6652           push edx
+            0000:12c0     6656           push esi
+            0000:12c2     6657           push edi
+            0000:12c4     6651           push ecx
+            0000:12c6     e8d500         call fcn.ebx0xFF800000[0000139e]
+            0000:12c9     668bd3         mov edx, ebx
+            0000:12cc     c1e903         shr cx, 3                     ; CX = CX / 8
+            0000:12cf     e86cff         call fcn.mcu2StatusChkStopped[0000123e]
+            0000:12d2     6683c303       add ebx, 3
+            0000:12d6     b0a0           mov al, 0xa0
+            0000:12d8     67268803       mov byte es:[ebx], al
+            0000:12dc     668bc7         mov eax, edi
+            0000:12df     6643           inc ebx
+            0000:12e1     67268803       mov byte es:[ebx], al
+            0000:12e5     6643           inc ebx
+            0000:12e7     66c1e808       shr eax, 8
+            0000:12eb     67268803       mov byte es:[ebx], al
+            0000:12ef     6643           inc ebx
+            0000:12f1     66c1e808       shr eax, 8
+            0000:12f5     67268803       mov byte es:[ebx], al
+            0000:12f9     6643           inc ebx
+            0000:12fb     66c1e808       shr eax, 8
+            0000:12ff     67268803       mov byte es:[ebx], al
+            0000:1303     668bda         mov ebx, edx
+            0000:1306     b001           mov al, 1
+            0000:1308     67268803       mov byte es:[ebx], al
+            0000:130c     e83cff         call fcn.mcu2StatusChkRun[0000124b]
+            0000:130f     668bda         mov ebx, edx
+            0000:1312     e829ff         call fcn.mcu2StatusChkStopped[0000123e]
+            0000:1315     6683c303       add ebx, 3
+            0000:1319     b0b8           mov al, 0xb8
+            0000:131b     67268803       mov byte es:[ebx], al
+            0000:131f     51             push cx
+            0000:1320     b90800         mov cx, 8
+            0000:1323     6643           inc ebx
+            0000:1325     678a06         mov al, byte [esi]
+            0000:1328     67268803       mov byte es:[ebx], al
+            0000:132c     6646           inc esi
+            0000:132e     6647           inc edi
+            0000:1330     e2f1           loop 0x1323
+            0000:1332     59             pop cx
+            0000:1333     668bda         mov ebx, edx
+            0000:1336     b001           mov al, 1
+            0000:1338     67268803       mov byte es:[ebx], al
+            0000:133c     e80cff         call fcn.mcu2StatusChkRun[0000124b]
+            0000:133f     e2ce           loop 0x130f
+            0000:1341     6659           pop ecx
+            0000:1343     665f           pop edi
+            0000:1345     665e           pop esi
+            0000:1347     665a           pop edx
+            0000:1349     665b           pop ebx
+            0000:134b     58             pop ax
+            0000:134c     c3             ret
+</code>
+</td></tr></table></div>
+And this function is more interesting. Firstly it executes command '0xa0', loading in the destination address as an arguement. Having executed that command it sets command '0xb8' and loops through 8 bytes of source data, setting them as arguements to that command, before executing it. This last sequence is then repeated for the remaining 4kB of data. This matches the listed commands, but in this case the string 'CMD_PR=2$A0B8$ADR=1$03$' is a little misleading as it would suggest one command instead of two.
+
+And that's about it, as mentioned previously a port of 'flashrom' was developed in tandem to test information found here. Re-implementing these commands in it, allowed them to be tested. At the time of writing only small tests have been done, but the major functions reading, erase, & writing have been tested (writing/erase only tested on a single sector so far). The next step is to analyse the ROM image to better understand it's contents as the aim is still to update the BIOS/firmware. One curious point is that it looks like the firmware is not a BIOS, but an EFI firmware implementation (there are references to PIE, DXE, etc). This is curious because during the installation of the OS, the legacy version of GRUB had to be installed rather than the EFI version. This would be a relatively early implementation of EFI
 
 ## References
 1. https://www.seabios.org/SeaBIOS
