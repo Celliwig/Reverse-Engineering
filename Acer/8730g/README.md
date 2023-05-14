@@ -9,7 +9,7 @@ One installation of Debian later and a little configuration, the majority of the
 
 Having previously modified a BayTrail tablet's ROM to lobotomise ME, I wanted to experiment with changing the firmware on this machine. In that case modifing the ROM was easy as it was on a daughterboard that could be detached from the mainboard and hooked up to a SPI programmer to read & write the contents. In this case the ROM is on the mainboard which makes programming in system more difficult (plus the machine's a pain to disassemble as well), so programming in situ via software is preferable (obviously still need to factor in the case of having to unbrick it manually :wink: ).
 
-The starting point for this is previously released firmware versions, and visiting Acer's website I was disappointed to find that there were no firmware images available for download. Windows 7 drivers yes, firmware no, thanks a bunch Acer. This left the distasteful option of third party sites, where you have absolutely no assurance of the integrity of the file you're trying to download. I managed to find version 1.09 (same as the system), but with no assurance of what it actually was there was no way it was going anywhere near the system. With this in mind and a wish to be able to update the flash ROM from Linux it's time to roll up the sleeves and peek (or poke, sorry BASIC joke) under the hood.
+The place to start for this is previously released firmware versions, and visiting Acer's website I was disappointed to find that there were no firmware images available for download. Windows 7 drivers yes, firmware no, thanks a bunch Acer. This left the distasteful option of third party sites, where you have absolutely no assurance of the integrity of the file you're trying to download. I managed to find version 1.09 (same as the system), but with no assurance of what it actually was there was no way it was going anywhere near the system. With this in mind and a wish to be able to update the flash ROM from Linux it's time to roll up the sleeves and peek (or poke, sorry BASIC joke) under the hood.
 
 ## Setup
 The firmware update comes packaged as a zipfile, so after unpacking it a number of different files are apparent. The update contains software to flash the ROM in both DOS & Windows, and a couple of different ROM images which differ in that one has an additional data section appended to it. Having a DOS executable (**phlash16.exe**) to analyse was handy as the amount of code dedicated to the interface is minimised (generally) so this was selected as the point of attack. 
@@ -19,7 +19,7 @@ The firmware update comes packaged as a zipfile, so after unpacking it a number 
 Static analyse can provide insights into the code, but running a binary can provide greater information far faster, so I decided to use QEMU to provide a virtual environment running FreeDOS[4]. With FreeDOS installed and the binary/ROM transfered a test run could be done. The phlash16 program provides a number of different <a href="phlash16-1.6.9.7.exe/phlash16-args.txt">arguments</a> which can be passed to it, and the required parameters can be found in the batch file 'BIOS.BAT'. These are 'phlash16 /x /s /c /mode=3 <bios image>'. Running this produces some output which is not exactly useful but is a good start.
 <br clear="right"/><br/>
 
-<img src="pics/qemu-debug-example.png" height="33%" width="33%" align="left">Originally I had been intending to use gdb as the debugger to interrogate phlash16, as QEMU/gdb are designed to work together. Unfortunately they are designed to work together when QEMU is operating in 32bit mode, not in real mode, this causes the disassembler to incorrectly interprete instructions which is no use. Switching gdb to 16bit mode causes a protocol error with QEMU, and while some people do appear to have worked around the problem, I had no luck. Scratching my head for a little while I remembered 'debug' which is a command line debugger that has been included in MS-DOS since version 1.00. An extended version is included in FreeDOS, so loading up the phlash16 executable with this provides a simple TUI to examine the program.
+<img src="pics/qemu-debug-example.png" height="33%" width="33%" align="left">Originally I had been intending to use gdb as the debugger to interrogate phlash16, as QEMU/gdb are designed to work together. Unfortunately they are designed to work together when QEMU is operating in 32bit mode, not in real mode, this causes the disassembler to incorrectly interprete instructions which is no use. Switching gdb to 16bit mode causes a protocol error with QEMU, and while some people do appear to have worked around the problem, I had no luck. Scratching my head for a little while I remembered 'debug', which is a command line debugger that has been included in MS-DOS since version 1.00. An extended version is included in FreeDOS, so loading up the phlash16 executable with this provides a simple TUI to examine the program.
 <br clear="left"/>
 
 #### Radare2
@@ -512,6 +512,7 @@ Also called from this function is this:
             0000:b5e9      cb             retf
 </code>
 </td></tr></table></div>
+
 It's not particularly important, and even potentially annoying. It's writing to I/O ports 0x42-43 which is the PIT (Programmable Interval Timer), and port 0x61 which is the KBC (KeyBoard Controller). What do these things have in common? The PC speaker. The PIT generates a square wave, and there's a gate in the KBC which enables the PIT to drive the PC speaker. The 'call fcn.0000b5ea' is a jump to a time delay which sets the interval of the beep.
 
 #### QEMU options
@@ -556,9 +557,10 @@ Analysis of the binary continued, picking off functions where it's purpose could
 │           0000:37f0      50             push ax
 </code>
 </td></tr></table></div>
+
 This basically pushes the address 4000:4FEA onto the stack, and this turns out to be the pointer to the string 'MMIOBASE'. Considering how frequently this appears (with different presets), I do wonder how much of phlash16's 143 kB is actually obfuscation!
 
-####ZFLPF table
+#### ZFLPF String
 Working my way through the code it became apparent that the '/mode=' argument selects different programming interfaces for phlash to use. In mode 3 it searches for the string 'ZFLPF' in the section of data appended to the main ROM image (that is in the .WPH file, not the plain .ROM file). In searching for additional information I came across one PDF[5] which references it, but no more. The PDF mentions that the access code is included in the ROM image but little more. Extracting the extra data from the WPH file it appears to contain some text configuration data:
 
 ```
@@ -585,7 +587,7 @@ Which is not immediately helpful (but more on this later), and examining the rem
   200A17     00 00 00 00 00 00 00 00  00 d8 04 00 00 00 00 00  00 00 00 00 00 00 00 00      ........................
 ```
 
-Disassembling the data at addresses 0x034a, 0x0446 & 0x04d8 (using the 'ZFLPF' identifier as the base address) reveals a number of functions, with the entry point correctly identified (so the interpretation of the table probably correct). Using phlash's '/ro=' argument to try to dump the ROM contents, and watching for accesses to those functions, it can be confirmed that the functions correspond to (my naming convention):
+Disassembling the data at addresses 0x034a, 0x0446 & 0x04d8 (using the 'ZFLPF' identifier as the base address) reveals a number of functions, with the entry point correctly identified. Using phlash's '/ro=' argument to try to dump the ROM contents, and watching for accesses to those functions, it can be confirmed that the functions correspond to (my naming convention):
 
 ```
 	0x034A -> Grant flash access
@@ -595,7 +597,7 @@ Disassembling the data at addresses 0x034a, 0x0446 & 0x04d8 (using the 'ZFLPF' i
 
 So what's this code actually doing? To make any sense of it Intel's documentation of the ICH[6] (I/O Controller Hub) was need.
 
-####Grant flash access
+#### Grant flash access
 This function does the most both in it's code block, and sub-functions. Note: 
 1. This, and any subsequent listings are dissambled from a dump starting at the 0x034A offset.
 2. Left in my comments/labels which should be broadly correct, but if anything is mislabeled mea culpa.
@@ -821,6 +823,7 @@ Which in turn calls:
             0000:0667     c3             ret
 </code>
 </td></tr></table></div>
+
 Which configures the ICH9M LPC (Low Pin Count) FWH (Firmware Hub) interface using the I/O port access method to the PCI subsystem. It does this to enable 2 memory regions (0xFF800000 / 0xFFC00000) that the Firmware Hub will decode for.
 
 After that:
@@ -902,8 +905,10 @@ After that:
             0000:057b     c3             ret
 </code>
 </td></tr></table></div>
-This is composed of read/writes to I/O ports 0x4e/0x4f (ignore operations to port 0xed, it's undefined and used to cause a predicatable delay due to bus access). Now the ICH has already been configured (confirmed by dumping it's state) to pass these operations to MCU (MicroController Unit) 2. In this machine that is a Nuvaton/Winbond WPCE775 EC (Embedded Controller). This device is reponsible for a number of different operations, including marshalling access to the (SPI) flash ROM, power management, and provides the KBC interface for the onboard keyboard and trackpad. No technical documentation could be found for this controller, so it's operation must be divined from the exiting code. Programming this device follows a standard however in that writes to port 0x4e selects a register, and then that register can be read from/written to using port 0x4f. The first part is 'magic' for this controller, but writes to registers 0xf8-0xfb contain the value '0xff800000', so it's reasonable to assume that it's the MMIO interface to MCU2 (as this was enabled for decoding in the previous function). This can be seen in the next part of the function 'fcn.mcu2ROMAccessInit' where there are accesses to that region.
 
+This is composed of read/writes to I/O ports 0x4e/0x4f (ignore operations to port 0xed, it's undefined and used to cause a predicatable delay due to bus access). Now the ICH has already been configured (confirmed by dumping it's state) to pass these operations to MCU (MicroController Unit) 2. In this machine that is a Nuvaton/Winbond WPCE775 EC (Embedded Controller). This device is reponsible for a number of different operations, including marshalling access to the (SPI) flash ROM, power management, and provides the KBC interface for the onboard keyboard and trackpad. No technical documentation could be found for this controller, so it's operation must be divined from the exiting code. Programming this device follows a standard however in that writes to port 0x4e selects a register, and then that register can be read from/written to using port 0x4f. The first part is 'magic' for this controller, but writes to registers 0xf8-0xfb contain the value '0xff800000', so it's reasonable to assume that it's the MMIO interface to MCU2 (as this was enabled for decoding in the previous function). This can be seen in the next part of the function 'fcn.mcu2ROMAccessInit' where there are accesses to that region.
+<br>
+		
 So what can be defined for the MMIO interface? Looking at this function (and others listed later), a few things become immediately apparent.
 1. The interface only has a few apparent addresses (largest offset used 0xe).
 2. Offset 0x0 is a status register, read/writes follow a set pattern which is comparable to status operations (check status, run command, etc).
@@ -957,7 +962,8 @@ So what about 'fcn.mcu2ROMAccessInit'? Having initialised the LPC/FWH, and MCU2 
             0000:04d6     c3             ret
 </code>
 </td></tr></table></div>
-Which basically executes the command '0xc0', and then builds a result from bytes read from the MMIO address space. This result is returned and compared to a value read from the same data table used to provide the arguments for the 1st command. By re-implementing these 2 functions and the data table in 'C' (a flashrom port was developed in tandem) it was discovered that the second function returned 0x14c2. This just happens to be the model/manufacturer id. for the SPI ROM, so command '0xc0' is get JEDEC id. So what about the 1st command '0x5a'? Well, it's called in a loop passing data from a table to the command, and stops when if gets a matching JEDEC id. This could be a command to configure the MCU for the SPI ROM, or it's a lock function to grant access, I'm not entirely sure. The data to initialise the MCU does appear to be obscured to a certain degree, the out of order loading of addresses, the fact that the data appears to be padded with reduntant values, and the fact that JEDEC id is checked last, possibly? More work is needed to understand this further, one possibility is to replace the ROM with one of the other supported ICs and see whether the MCU needs to be initialised using the existing selected parameters, or if a different set is needed.
+
+Which basically executes the command '0xc0', and then builds a result from bytes read from the MMIO address space. This result is returned and compared to a value read from the same data table used to provide the arguments for the 1st command. By re-implementing these 2 functions and the data table in 'C' (a flashrom[7] port was developed in tandem) it was discovered that the second function returned 0x14c2. This just happens to be the model/manufacturer id. for the SPI ROM, so command '0xc0' is get JEDEC id. So what about the 1st command '0x5a'? Well, it's called in a loop passing data from a table to the command, and stops when if gets a matching JEDEC id. This could be a command to configure the MCU for the SPI ROM, or it's a lock function to grant access, I'm not entirely sure. The data to initialise the MCU does appear to be obscured to a certain degree, the out of order loading of addresses, the fact that the data appears to be padded with reduntant values, and the fact that JEDEC id is checked last, possibly? More work is needed to understand this further, one possibility is to replace the ROM with one of the other supported ICs and see whether the MCU needs to be initialised using the existing selected parameters, or if a different set is needed.
 
 So back to the original function. It starts by disabling the power button from shutting down the device, and it then initialises MCU2 as previously discussed. I/O port 0x66 is then probed, I'm not sure what this does apart from the fact that this port, along with 0x62, are routed to MCU1 by the ICH so this is probably also the WPCE775. It then reinitialises the LPC FWH with the same parameters as before. After that it executes another command, '0x10', through the MMIO interface. This is another obscure command as the arguments are hardcoded, 0x55AACDBE. While the function of most commands were determined by examining how they were called from phlash, this was actually discovered from analysis of text 'files', specifically the text header at the start of this data suffix (listed earlier), and also the 'WFlash.DAT' file from the 'Winflash6' installer (included in the original zipfile).
 
@@ -1044,6 +1050,7 @@ Hinted at in the meaguer documentation (basically sales pamphlet) found online f
      1D0     01 00 f4 0f 50 5d 00 5f  20 00 01 00 e0 0f 23 b0      ....P]._ .....#.
 </code>
 </td></tr></table></div>
+
 The signature 0x55AACDBE can be seen at address 0x1ac (document also says it's a 16bit architecture, I'm guessing big endian from the byte order). This could be a coincidence, probably not though. :wink: So the command '0x10' enables the flash update mode, and is probably a configurable 'lock'. Unfortunately neither source had any information (even a mention) of the '0x5a' command.
 
 So continuing the analysis of the ROM access function, 3 more functions are then called. The first seems a little pointless:
@@ -1060,6 +1067,7 @@ So continuing the analysis of the ROM access function, 3 more functions are then
             0000:0345 ~   006660         add byte [bp + 0x60], ah
 </code>
 </td></tr></table></div>
+
 It comprises a single 'ret' instruction. I did wonder if there might be some self modifying code destined here considering the empty space after it, but I didn't see any evidence of this.
 
 The next function:
@@ -1115,6 +1123,7 @@ Calls another function:
             0000:028d     c3             ret
 </code>
 </td></tr></table></div>
+
 Which gets the base address of the I/O port of the ACPI interface from the LPC controller. It uses that to access the SMI control and in this case (it's reused later), disable the SMI interrupt. Having returned to the previous function it accesses the 'BIOS Control' register on the LPC, and sets 'BIOS Write Enable'.
 
 The final function:
@@ -1149,9 +1158,10 @@ The final function:
             0000:0208     c3             ret
 </code>
 </td></tr></table></div>
+
 Is another bit of obfusciated code, it loops through the address range 0xffbf0002->0xffa00002 in 0x10000 decrements, writing whatever is in cl to that address. In this call cl=0, so it writes 0 to those memory addresses. It's called later in the revoke flash access function with cl=1, so is this a memory block access protection scheme?
 
-####Revoke flash access
+#### Revoke flash access
 The revoke access function is much simpler by comparison:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -1214,9 +1224,10 @@ The revoke access function is much simpler by comparison:
             0000:018d     c3             ret
 </code>
 </td></tr></table></div>
+
 It executes the command '0x22' through the MMIO interface, obviously an exit flash update mode command as there are no other MMIO commands. It then restores the previous SMI configuration, and calls the routine to cycle over the '0xffbf0002->0xffa00002' memory region (as explained before). It then does a number of operations going through ACPI registers which I can't fully explain, reading and then writing the same value back which is used to clear a set bit flag in those registers. The final one, for example, will clear the Microcontroller SMI bit which seems sensible, but the first two I'm unsure on. Then, finally, it re-enables the power button.
 
-####System reset
+#### System reset
 Even simpler!
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -1232,6 +1243,7 @@ Even simpler!
             0000:019b     c3             ret
 </code>
 </td></tr></table></div>
+
 I have to admit I was slightly confused when I first saw this one (not realising it's function). The fact that you have 'hlt' followed by an unconditional jump to that halt, followed by a 'ret'. But this is just 'guarding' against the processor accidentally executing code while it waits for the ICH to assert the reset signal.
 
 So that's all that's needed to read the ROM, what about writing? There are additional functions in the ROM image suffix, but the offset table for these functions has not been found. The offsets are identified and saved when the ROM image is loaded, but it's not immediately obvious how. The first stage happens inside this loop:
@@ -1723,11 +1735,12 @@ And involves this function:
             1000:8c49     cb             retf
 </code>
 </td></tr></table></div>
+
 I tried tracing 160 iterations of the loop, but without joy. It's not important, so I decided to ignore the problem for now.
 
 There are two missing functions, erase sector and program (sector), and the required functions can be identifed simply by executing phlash and trying to flash the ROM image.
 
-####Erase Sector
+#### Erase Sector
 When reflashing a ROM, the sectors to be programmed first have to be erased. Tracing the ROM flashing routine, phlash jumps to external code with this function:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -1753,6 +1766,7 @@ When reflashing a ROM, the sectors to be programmed first have to be erased. Tra
             0000:1225     c3             ret
 </code>
 </td></tr></table></div>
+
 You can probably guess that EDI is the start sector address, while ECX contains the end address, so this just loops over a number of sectors calling:
 
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
@@ -1789,9 +1803,10 @@ You can probably guess that EDI is the start sector address, while ECX contains 
             0000:12ba     c3             ret
 </code>
 </td></tr></table></div>
+
 The function names I've left in should be fairly self explanitory, so I won't bother listing those functions. This function follows the pattern of previous MCU2 MMIO commands, except this time it executes command '0x80' and loads the sector address in as an arguement. So sector erase, simple enough.
 
-####Program Flash
+#### Program Flash
 Finally, having erased a sector, the new data needs to be programmed into it and so this is called:
 <div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
 <code>
@@ -1821,6 +1836,7 @@ Finally, having erased a sector, the new data needs to be programmed into it and
             0000:11c0     c3             ret
 </code>
 </td></tr></table></div>
+
 Similar to before, ESI is the source address of data to write, EDI is the destination MMIO address in the ROM, and once again ECX is the end address. So this iteratively calls a function, incrementing the passed address space by 4k each time:
 
 And so we come to:
@@ -1884,6 +1900,7 @@ And so we come to:
             0000:134c     c3             ret
 </code>
 </td></tr></table></div>
+
 And this function is more interesting. Firstly it executes command '0xa0', loading in the destination address as an arguement. Having executed that command it sets command '0xb8' and loops through 8 bytes of source data, setting them as arguements to that command, before executing it. This last sequence is then repeated for the remaining 4kB of data. This matches the listed commands, but in this case the string 'CMD_PR=2$A0B8$ADR=1$03$' is a little misleading as it would suggest one command instead of two.
 
 And that's about it, as mentioned previously a port of 'flashrom' was developed in tandem to test information found here. Re-implementing these commands in it, allowed them to be tested. At the time of writing only small tests have been done, but the major functions reading, erase, & writing have been tested (writing/erase only tested on a single sector so far). The next step is to analyse the ROM image to better understand it's contents as the aim is still to update the BIOS/firmware. One curious point is that it looks like the firmware is not a BIOS, but an EFI firmware implementation (there are references to PIE, DXE, etc). This is curious because during the installation of the OS, the legacy version of GRUB had to be installed rather than the EFI version. This would be a relatively early implementation of EFI
@@ -1894,4 +1911,5 @@ And that's about it, as mentioned previously a port of 'flashrom' was developed 
 3. https://www.linuxboot.org/
 4. https://www.freedos.org/
 5. https://people.freedesktop.org/~libv/flash_enable_bios_reverse_engineering_(FOSDEM2010_-_slides).pdf
-6. Intel ® I/O Controller Hub 9 (ICH9) Family [Document Number: 316972-004]
+6. https://www.intel.com/content/dam/doc/datasheet/io-controller-hub-9-datasheet.pdf
+7. https://www.flashrom.org/Flashrom
