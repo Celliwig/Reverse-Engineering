@@ -1016,8 +1016,7 @@ There is another interesting snippet in this file worth mentioning:
 ```
 
 Hinted at in the meaguer documentation (basically sales pamphlet) found online for the WPCE775 suggests that it boots from the SPI ROM it's connected to, and so it's possible that the first 16kB of SPI ROM is actually for the WPCE775. Examining the ROM image:
-<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
-<code>
+```
        0     61 87 00 00 00 00 00 00  89 09 02 21 00 00 21 00      a..........!..!.
       10     20 7f 00 00 00 01 02 00  80 1f 00 00 00 00 00 00       ...............
       20     00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00      ................
@@ -1048,14 +1047,12 @@ Hinted at in the meaguer documentation (basically sales pamphlet) found online f
      1B0     1b 10 13 00 10 31 58 01  12 00 20 71 e8 0f 00 c0      .....1X... q....
      1C0     fa 02 e0 18 40 01 b9 50  5a 00 12 11 05 58 73 00      ....@..PZ....Xs.
      1D0     01 00 f4 0f 50 5d 00 5f  20 00 01 00 e0 0f 23 b0      ....P]._ .....#.
-</code>
-</td></tr></table></div>
+```
 
 The signature 0x55AACDBE can be seen at address 0x1ac (document also says it's a 16bit architecture, I'm guessing big endian from the byte order). This could be a coincidence, probably not though. :wink: So the command '0x10' enables the flash update mode, and is probably a configurable 'lock'. Unfortunately neither source had any information (even a mention) of the '0x5a' command.
 
 So continuing the analysis of the ROM access function, 3 more functions are then called. The first seems a little pointless:
-<div style="height: 400px; overflow: auto;"><table height="400px" border=0><tr><td>
-<code>
+```
             0000:0336     c3             ret
             0000:0337     0000           add byte [bx + si], al
             0000:0339     0000           add byte [bx + si], al
@@ -1065,8 +1062,7 @@ So continuing the analysis of the ROM access function, 3 more functions are then
             0000:0341     0000           add byte [bx + si], al
             0000:0343     0000           add byte [bx + si], al
             0000:0345 ~   006660         add byte [bp + 0x60], ah
-</code>
-</td></tr></table></div>
+```
 
 It comprises a single 'ret' instruction. I did wonder if there might be some self modifying code destined here considering the empty space after it, but I didn't see any evidence of this.
 
@@ -1225,7 +1221,7 @@ The revoke access function is much simpler by comparison:
 </code>
 </td></tr></table></div>
 
-It executes the command '0x22' through the MMIO interface, obviously an exit flash update mode command as there are no other MMIO commands. It then restores the previous SMI configuration, and calls the routine to cycle over the '0xffbf0002->0xffa00002' memory region (as explained before). It then does a number of operations going through ACPI registers which I can't fully explain, reading and then writing the same value back which is used to clear a set bit flag in those registers. The final one, for example, will clear the Microcontroller SMI bit which seems sensible, but the first two I'm unsure on. Then, finally, it re-enables the power button.
+It executes the command '0x22' through the MMIO interface, obviously an exit flash update mode command as there are no other MMIO commands. It then restores the previous SMI configuration, and calls the routine to cycle over the '0xffbf0002->0xffa00002' memory region (as explained before). It then does a number of operations going through ACPI registers which I can't fully explain, reading and then writing the same value back (which is used to clear a set bit flag). The final one, for example, will clear the Microcontroller SMI bit which seems sensible, but the first two I'm unsure on. Then, finally, it re-enables the power button.
 
 #### System reset
 Even simpler!
